@@ -1,0 +1,3839 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wijnkelder">
+<meta name="theme-color" content="#9F1240">
+<title>Wijnkelder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,650&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0&display=block" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,650&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0&display=block">
+</noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<style>
+:root {
+  --wine:       #9F1240;
+  --wine-dark:  #5C0B26;
+  --wine-light: #FCE9EF;
+  --wine-mid:   #C23F6B;
+  --gold:       #C2870C;
+  --gold-light: #FDF6E3;
+  --green:      #15803D;
+  --green-light:#DCFCE7;
+  --amber:      #B45309;
+  --amber-light:#FEF3C7;
+  --red-err:    #991B1B;
+  --red-light:  #FEE2E2;
+  --blue:       #1E40AF;
+  --blue-light: #EFF6FF;
+  --slate:      #1C1917;
+  --slate-mid:  #57534E;
+  --slate-muted:#A8A29E;
+  --surface:    #FAFAF8;
+  --surface-2:  #F4F1ED;
+  --surface-3:  #EBE7E1;
+  --border:     rgba(159,18,64,0.28);
+  --border-mid: rgba(159,18,64,0.40);
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  18px;
+  --radius-xl:  24px;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-wine:    'Inter', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-stat:    'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --max-w: 480px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface:    #120C10;
+    --surface-2:  #1D1317;
+    --surface-3:  #271A20;
+    --border:     rgba(230,150,180,0.28);
+    --border-mid: rgba(230,150,180,0.40);
+    --slate:      #F4F1ED;
+    --slate-mid:  #C7BBB4;
+    --slate-muted:#7D7169;
+    --wine-light: #3D0F22;
+    --green-light:#0C2818;
+    --amber-light:#2A1704;
+    --red-light:  #2B0A0A;
+    --blue-light: #0D1A38;
+    --gold-light: #211505;
+  }
+}
+/* Handmatige thema-overschrijving (wint altijd van de systeeminstelling hierboven) */
+html[data-theme="dark"] {
+  --surface:    #120C10;
+  --surface-2:  #1D1317;
+  --surface-3:  #271A20;
+  --border:     rgba(230,150,180,0.28);
+  --border-mid: rgba(230,150,180,0.40);
+  --slate:      #F4F1ED;
+  --slate-mid:  #C7BBB4;
+  --slate-muted:#7D7169;
+  --wine-light: #3D0F22;
+  --green-light:#0C2818;
+  --amber-light:#2A1704;
+  --red-light:  #2B0A0A;
+  --blue-light: #0D1A38;
+  --gold-light: #211505;
+}
+html[data-theme="light"] {
+  --surface:    #FAFAF8;
+  --surface-2:  #F4F1ED;
+  --surface-3:  #EBE7E1;
+  --border:     rgba(159,18,64,0.28);
+  --border-mid: rgba(159,18,64,0.40);
+  --slate:      #1C1917;
+  --slate-mid:  #57534E;
+  --slate-muted:#A8A29E;
+  --wine-light: #FCE9EF;
+  --green-light:#DCFCE7;
+  --amber-light:#FEF3C7;
+  --red-light:  #FEE2E2;
+  --blue-light: #EFF6FF;
+  --gold-light: #FDF6E3;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+.material-symbols-outlined{
+  font-family:'Material Symbols Outlined';
+  font-weight:normal;font-style:normal;
+  font-size:inherit;line-height:1;letter-spacing:normal;text-transform:none;
+  display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;
+  -webkit-font-smoothing:antialiased;
+  vertical-align:middle;
+  font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
+}
+html,body{height:100%;background:var(--surface);color:var(--slate);font-family:var(--font-body)}
+body{max-width:var(--max-w);margin:0 auto;position:relative}
+
+/* ── HEADER ── */
+.app-header {
+  background:var(--wine-dark);
+  padding:env(safe-area-inset-top,0) 0 0;
+}
+.hero {
+  padding:1.25rem 1.25rem 0;
+  position:relative;overflow:hidden;
+  transition:padding .25s ease;
+}
+.hero.compact{padding:0.85rem 1.25rem 0.85rem}
+.hero.compact .hero-sub{display:none}
+.hero.compact .hero-date{display:none}
+.hero::before {
+  content:'';position:absolute;right:-40px;top:-40px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,0.04);
+}
+.hero::after {
+  content:'';position:absolute;right:40px;bottom:-50px;
+  width:100px;height:100px;border-radius:50%;
+  background:rgba(255,255,255,0.03);
+}
+.hero-top {
+  display:flex;justify-content:space-between;align-items:flex-start;
+  position:relative;z-index:1;
+}
+.hero-brand { display:flex;align-items:center;gap:10px; }
+.hero-icon-wrap {
+  width:38px;height:38px;border-radius:10px;
+  background:rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:#fff;flex-shrink:0;
+}
+.hero-title {
+  font-family:var(--font-display);
+  font-size:20px;font-weight:600;color:#fff;letter-spacing:-.2px;
+}
+.hero-sub {
+  font-size:12px;color:rgba(255,255,255,0.55);margin-top:1px;
+  font-weight:300;letter-spacing:.02em;
+}
+.hero-date {
+  font-size:12px;color:rgba(255,255,255,0.45);
+  text-align:right;font-weight:300;
+}
+.hero-stats {
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:8px;margin-top:1.1rem;padding-bottom:1.1rem;
+  position:relative;z-index:1;
+  overflow:hidden;max-height:200px;opacity:1;
+  transition:max-height .25s ease,opacity .2s ease,margin-top .25s ease,padding-bottom .25s ease;
+}
+.hero.compact .hero-stats{max-height:0;opacity:0;margin-top:0;padding-bottom:0}
+.hstat {
+  background:rgba(255,255,255,0.08);
+  border:0.5px solid rgba(255,255,255,0.12);
+  border-radius:var(--radius-md);padding:8px 4px;text-align:center;
+  transition:background .2s;
+}
+.hstat-val {
+  font-size:19px;font-weight:600;color:#fff;
+  font-family:var(--font-stat);letter-spacing:-.01em;
+}
+.hstat-lbl { font-size:10px;color:rgba(255,255,255,0.55);margin-top:2px;font-weight:300; }
+
+/* ── BOTTOM NAV ── */
+.sec{display:none;padding:1.25rem 1rem 5rem}
+.sec.active{display:block}
+.sec-hd {
+  font-family:var(--font-display);
+  font-size:18px;font-weight:500;color:var(--slate);
+  margin-bottom:1rem;display:flex;align-items:center;gap:8px;
+}
+.sec-hd i{color:var(--wine);font-size:18px}
+
+/* ── FILTER BAR ── */
+.filter-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-row input,.filter-row select {
+  flex:1;min-width:100px;font-size:13px;padding:9px 12px;
+  border:0.5px solid var(--border-mid);border-radius:20px;
+  background:var(--surface);color:var(--slate);
+  font-family:var(--font-body);
+  -webkit-appearance:none;appearance:none;
+}
+.filter-row input:focus,.filter-row select:focus{
+  outline:none;border-color:var(--wine-mid);
+  box-shadow:0 0 0 3px rgba(159,18,64,0.08);
+}
+
+/* ── WINE CARDS ── */
+.wine-card {
+  background:var(--surface);
+  border:1.5px solid var(--border-mid);
+  border-radius:var(--radius-lg);
+  margin-bottom:12px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,0.07);
+  transition:border-color .2s;
+}
+.wine-card.alert{border-color:rgba(220,100,60,0.55)}
+
+/* ── INZICHTEN ── */
+.ins-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.ins-title{
+  font-size:13px;font-weight:700;color:var(--slate);
+  margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+.ins-title i{color:var(--wine);font-size:15px}
+.ins-stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.ins-stat{background:var(--surface-2);border-radius:var(--radius-md);padding:12px;text-align:center}
+.ins-stat-val{font-family:var(--font-stat);font-size:21px;font-weight:600;color:var(--wine);letter-spacing:-.01em}
+.ins-stat-lbl{font-size:11px;color:var(--slate-muted);margin-top:3px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.bar-row:last-child{margin-bottom:0}
+.bar-label{width:92px;flex-shrink:0;font-size:12px;color:var(--slate-mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:18px;background:var(--surface-3);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.bar-value{width:30px;flex-shrink:0;font-size:12px;color:var(--slate-mid);text-align:right;font-weight:600}
+
+/* ── KAART: compacte rij + uitklapbare volledige info ── */
+.wcc-row{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;cursor:pointer}
+.wcc-main{flex:1;min-width:0}
+.wcc-name{font-family:var(--font-wine);font-weight:700;font-size:14px;color:var(--slate);white-space:normal;overflow-wrap:break-word;letter-spacing:-.01em;line-height:1.3}
+.wcc-sub{font-size:11px;color:var(--slate-muted);white-space:normal;overflow-wrap:break-word;margin-top:2px}
+.wcc-stock{font-size:12px;color:var(--slate-mid);font-weight:600;flex-shrink:0;margin-top:2px}
+.wcc-row .bdg{flex-shrink:0;margin-top:1px}
+.wc-chevron{
+  font-size:16px;color:var(--slate-muted);flex-shrink:0;
+  transition:transform .2s ease;margin-top:2px;
+}
+.wc-chevron.open{transform:rotate(180deg)}
+.wc-extra{
+  max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .25s ease,opacity .2s ease;
+}
+.wc-extra.open{max-height:800px;opacity:1}
+.wc-extra-inner{padding:0 14px 12px}
+.wc-extra.open .wc-extra-inner{padding-top:2px}
+
+/* ── GROUP HEADERS (sorteren op "Op dronk") ── */
+.group-hd{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;
+  border-radius:var(--radius-md);
+  padding:10px 14px;margin:22px 0 10px;
+}
+.group-hd:first-child{margin-top:0}
+.group-hd i{font-size:16px}
+.group-hd .group-count{
+  margin-left:auto;font-size:11px;font-weight:600;
+  padding:2px 9px;border-radius:20px;
+}
+.group-hd.g-vb{background:var(--red-light);color:var(--red-err)}
+.group-hd.g-nu{background:var(--green-light);color:var(--green)}
+.group-hd.g-wt{background:var(--amber-light);color:var(--amber)}
+.group-hd.g-nvt{background:var(--surface-2);color:var(--slate-muted)}
+.group-hd.g-vb .group-count{background:rgba(220,38,38,0.15)}
+.group-hd.g-nu .group-count{background:rgba(21,128,61,0.15)}
+.group-hd.g-wt .group-count{background:rgba(180,83,9,0.15)}
+.group-hd.g-nvt .group-count{background:rgba(120,113,108,0.15)}
+.wc-accent{height:3px;width:100%}
+.wc-accent.rood{background:var(--wine)}
+.wc-accent.wit{background:var(--gold)}
+.wc-accent.rosé,.wc-accent.rose{background:var(--wine-mid)}
+.wc-accent.mousserend{background:var(--blue)}
+.wc-accent.overig{background:var(--slate-muted)}
+.wc-body{padding:14px 14px 10px}
+.wc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.wc-name{font-family:var(--font-wine);font-size:17px;font-weight:700;color:var(--slate);line-height:1.3;letter-spacing:-.01em}
+.wc-sub{font-size:12px;color:var(--slate-muted);margin-top:2px;font-weight:300}
+.bdg {
+  font-size:12px;padding:4px 10px;border-radius:20px;font-weight:500;
+  white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:4px;
+}
+.bdg i{font-size:12px}
+.b-nu{background:var(--green-light);color:var(--green)}
+.b-wt{background:var(--amber-light);color:var(--amber)}
+.b-vb{background:var(--red-light);color:var(--red-err)}
+.b-nv{background:var(--surface-2);color:var(--slate-muted)}
+.b-bj{background:var(--amber-light);color:var(--amber)}
+.wc-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chip {
+  display:inline-flex;align-items:center;gap:3px;
+  background:var(--surface-2);padding:3px 8px;border-radius:20px;
+  font-size:12px;color:var(--slate-mid);border:1px solid var(--border);
+}
+.chip i{font-size:12px;color:var(--slate-muted)}
+.wc-stars{color:#D97706;font-size:14px;margin-top:8px;letter-spacing:1px}
+.dbar-wrap{margin-top:10px}
+.dbar-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--slate-muted);margin-bottom:4px}
+.dbar{height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden}
+.df{height:100%;border-radius:3px;background:var(--green);transition:width .4s}
+.df.dv{background:var(--red-err)}.df.dw{background:var(--amber)}
+.wc-notes{
+  font-size:13px;color:var(--slate-mid);
+  margin-top:10px;padding:9px 11px;
+  background:var(--surface-2);border-radius:var(--radius-sm);
+  font-style:italic;line-height:1.55;border-left:2px solid var(--wine-mid);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+}
+.wc-notes.wc-notes-structured{font-style:normal}
+.note-section{margin-bottom:9px}
+.note-section:last-child{margin-bottom:0}
+.note-label{
+  display:block;font-size:10.5px;font-weight:700;color:var(--wine);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;font-style:normal;
+}
+.note-body{font-style:italic;display:block}
+.wc-footer{
+  display:flex;gap:6px;padding:10px 14px;
+  border-top:0.5px solid var(--border);
+  background:var(--surface-2);flex-wrap:wrap;align-items:center;
+}
+.stock-row{display:flex;align-items:center;gap:5px;margin-right:auto}
+.stock-num{font-size:13px;font-weight:500;color:var(--slate)}
+.stock-lbl{font-size:12px;color:var(--slate-muted)}
+.btn-card{
+  font-size:13px;padding:6px 11px;border-radius:20px;
+  border:0.5px solid var(--border-mid);background:var(--surface);
+  color:var(--slate-mid);cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;font-weight:500;
+  font-family:var(--font-body);transition:transform .1s,background .15s;
+}
+.btn-card:active{transform:scale(0.95)}
+.btn-drink{background:var(--green-light);border-color:rgba(21,128,61,0.3);color:var(--green)}
+.btn-del{color:var(--red-err);border-color:rgba(153,27,27,0.25);background:var(--red-light)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:3.5rem 1rem;color:var(--slate-muted)}
+.empty i{font-size:52px;display:block;margin-bottom:14px;color:var(--surface-3)}
+.empty p{font-size:14px;line-height:1.6}
+.empty strong{color:var(--wine);font-weight:500}
+
+/* ── TIMELINE ── */
+.tl-wrap{overflow-x:auto;padding-bottom:4px}
+.tl-inner{min-width:280px}
+.tl-row{display:flex;align-items:center;margin-bottom:7px}
+.tl-lbl{width:110px;flex-shrink:0;font-size:12px;color:var(--slate-mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px;cursor:pointer}
+.tl-lbl.tl-lbl-open{width:auto;max-width:220px;white-space:normal;overflow:visible;text-overflow:clip;color:var(--slate);font-weight:600}
+.tl-track{flex:1;position:relative;height:20px;background:var(--surface-3);border-radius:4px}
+.tl-seg{position:absolute;height:100%;border-radius:4px;min-width:4px;opacity:.85}
+.tl-now{position:absolute;width:2px;top:-3px;height:calc(100% + 6px);background:var(--wine);opacity:.9}
+.tl-axrow{display:flex;padding-left:110px;margin-bottom:6px}
+.tl-tick{flex:1;font-size:11px;color:var(--slate-muted);text-align:center}
+.tl-tick:first-child{text-align:left}
+.tl-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--slate-muted)}
+.leg-dot{width:12px;height:12px;border-radius:3px}
+
+/* ── LOG ── */
+.log-item{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.log-date{font-size:12px;color:var(--slate-muted);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.log-name{font-family:var(--font-wine);font-size:16px;font-weight:700;color:var(--slate);letter-spacing:-.01em}
+.log-meta{font-size:13px;color:var(--slate-muted);margin-top:3px;font-weight:300}
+.log-stars{color:#D97706;font-size:13px;margin-top:4px}
+.log-note{
+  font-size:13px;color:var(--slate-mid);margin-top:8px;
+  padding:7px 10px;background:var(--surface-2);
+  border-radius:var(--radius-sm);font-style:italic;line-height:1.5;
+}
+
+/* ── ALERTS ── */
+.alert-card{border-radius:var(--radius-md);padding:14px;margin-bottom:10px}
+.alert-card.danger{background:var(--red-light);border:0.5px solid rgba(153,27,27,0.25)}
+.alert-card.warn{background:var(--amber-light);border:0.5px solid rgba(180,83,9,0.25)}
+.alert-title{font-size:13px;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.alert-card.danger .alert-title{color:var(--red-err)}
+.alert-card.warn .alert-title{color:var(--amber)}
+.alert-row{font-size:13px;padding:5px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);display:flex;justify-content:space-between}
+.alert-card.danger .alert-row{color:#7F1D1D}
+.alert-card.warn .alert-row{color:#78350F}
+.alert-row:last-child{border-bottom:none}
+
+/* ── FORM ── */
+.form-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.form-sec-title{
+  font-size:12px;font-weight:500;color:var(--wine);
+  text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+.form-sec-title i{font-size:14px}
+.fr{margin-bottom:10px}
+.fr label{display:block;font-size:13px;color:var(--slate-mid);margin-bottom:4px;font-weight:500}
+.fr input,.fr select,.fr textarea{
+  width:100%;font-size:14px;padding:10px 12px;
+  border:0.5px solid var(--border-mid);border-radius:var(--radius-md);
+  background:var(--surface);color:var(--slate);
+  font-family:var(--font-body);transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.fr input:focus,.fr select:focus,.fr textarea:focus{
+  outline:none;border-color:var(--wine-mid);
+  box-shadow:0 0 0 3px rgba(159,18,64,0.08);
+}
+.fr textarea{resize:vertical;min-height:72px;line-height:1.5}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.star-row{display:flex;gap:6px;margin-top:4px}
+.star{font-size:26px;cursor:pointer;color:var(--surface-3);user-select:none;transition:color .1s,transform .1s}
+.star:active{transform:scale(1.2)}
+.star.lit{color:#D97706}
+.btn-primary{
+  width:100%;padding:13px;font-size:14px;font-weight:500;
+  background:var(--wine);border:none;border-radius:var(--radius-md);
+  color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:6px;font-family:var(--font-body);
+  transition:background .15s,transform .1s;
+}
+.btn-primary:active{transform:scale(0.98);background:var(--wine-dark)}
+
+/* ── EXPORT ── */
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.exp-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px 12px;text-align:center;cursor:pointer;
+  transition:transform .1s,border-color .15s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.exp-card:active{transform:scale(0.96)}
+.exp-card:hover{border-color:var(--wine-mid)}
+.exp-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 10px;font-size:22px;
+}
+.exp-icon.green{background:var(--green-light);color:var(--green)}
+.exp-icon.amber{background:var(--gold-light);color:var(--gold)}
+.exp-icon.red{background:var(--red-light);color:var(--red-err)}
+.exp-icon.blue{background:var(--blue-light);color:var(--blue)}
+.exp-label{font-size:13px;font-weight:500;color:var(--slate)}
+.exp-desc{font-size:12px;color:var(--slate-muted);margin-top:3px}
+
+/* ── MODALS ── */
+.overlay{
+  display:none;background:rgba(10,5,8,0.6);
+  padding:1.5rem;align-items:flex-end;justify-content:center;
+  position:fixed;top:0;left:50%;transform:translateX(-50%);
+  bottom:0;width:100%;max-width:var(--max-w);
+  overflow-y:auto;z-index:200;
+}
+.overlay.open{display:flex}
+.modal-box{
+  background:var(--surface);border-radius:var(--radius-xl);
+  padding:1.5rem;width:100%;max-width:360px;
+  border:0.5px solid var(--border-mid);
+}
+.modal-title{
+  font-family:var(--font-display);font-size:17px;font-weight:500;
+  color:var(--slate);margin-bottom:4px;
+}
+.modal-sub{font-size:13px;color:var(--slate-muted);margin-bottom:14px;line-height:1.5}
+.modal-fr{margin-bottom:10px}
+.modal-fr label{display:block;font-size:13px;color:var(--slate-mid);margin-bottom:3px;font-weight:500}
+.modal-fr input,.modal-fr textarea{
+  width:100%;font-size:13px;padding:9px 11px;
+  border:0.5px solid var(--border-mid);border-radius:var(--radius-md);
+  background:var(--surface);color:var(--slate);font-family:var(--font-body);
+}
+.modal-fr textarea{min-height:60px;resize:vertical}
+.modal-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.modal-actions button{
+  flex:1;padding:11px;font-size:13px;border-radius:var(--radius-md);
+  cursor:pointer;border:none;font-weight:500;font-family:var(--font-body);
+  transition:transform .1s;
+}
+.modal-actions button:active{transform:scale(0.97)}
+.mbtn-save{background:var(--wine);color:#fff}
+.mbtn-keep{background:var(--green-light);color:var(--green)}
+.mbtn-del{background:var(--red-light);color:var(--red-err)}
+.mbtn-cancel{background:var(--surface-2);color:var(--slate-muted)}
+
+/* ── TOAST ── */
+.toast {
+  position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--slate);color:#fff;
+  padding:10px 18px;border-radius:20px;
+  font-size:13px;font-weight:500;font-family:var(--font-body);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;
+  z-index:100;white-space:nowrap;
+  max-width:90vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── BOTTOM NAV ── */
+.bottom-hint{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:var(--max-w);
+  background:var(--surface);
+  border-top:0.5px solid var(--border);
+  padding:6px 0 calc(env(safe-area-inset-bottom,0px) + 6px);
+  display:flex;justify-content:space-around;z-index:10;
+}
+.bnh{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:10px;color:var(--slate-muted);cursor:pointer;
+  padding:4px 2px;border-radius:8px;border:none;background:none;
+  font-family:var(--font-body);transition:color .15s;min-width:0;
+}
+.bnh i{font-size:20px}
+.bnh.active{color:var(--wine)}
+.bnh-wrap{position:relative;flex:1;display:flex;justify-content:center}
+.bnh-wrap .bnh{width:100%}
+.ndot2{width:5px;height:5px;border-radius:50%;background:var(--red-err);display:none;position:absolute;top:4px;right:6px}
+.ndot2.show{display:block}
+
+/* ── PWA INSTALL ── */
+.install-banner{
+  background:var(--wine-light);border:0.5px solid var(--border-mid);
+  border-radius:var(--radius-md);padding:12px 14px;margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.install-banner i{font-size:22px;color:var(--wine);flex-shrink:0}
+.install-txt{flex:1;font-size:13px;color:var(--slate-mid);line-height:1.4}
+.install-txt strong{color:var(--wine);font-weight:500;display:block;margin-bottom:2px}
+.install-close{font-size:18px;color:var(--slate-muted);cursor:pointer;padding:0 4px}
+
+@media(min-width:480px){
+  body{border-left:0.5px solid var(--border);border-right:0.5px solid var(--border)}
+  .bottom-hint{border-radius:0 0 16px 16px}
+}
+
+/* ── FAB (Toevoegen) ── */
+.fab-wrap{
+  position:fixed;left:50%;transform:translateX(-50%);
+  width:100%;max-width:var(--max-w);
+  bottom:calc(74px + env(safe-area-inset-bottom,0px));
+  pointer-events:none;z-index:15;
+}
+.fab-add{
+  position:absolute;right:16px;bottom:0;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--wine);color:#fff;border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;box-shadow:0 4px 14px rgba(159,18,64,0.35);
+  cursor:pointer;pointer-events:auto;
+  transition:transform .15s,background .15s;
+}
+.fab-add:active{transform:scale(0.92);background:var(--wine-dark)}
+
+/* ── A-Z SPRINGBALK ── */
+#az-bar{
+  position:fixed;right:6px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:14;padding:10px 4px;border-radius:16px;gap:0.5px;
+  background:var(--surface);border:0.5px solid var(--border);
+  box-shadow:0 4px 16px rgba(0,0,0,0.1);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease;
+  touch-action:none;
+}
+#az-bar.az-visible{opacity:1;pointer-events:auto}
+.az-letter{
+  font-size:10px;line-height:1.5;color:var(--slate-muted);
+  font-weight:600;width:18px;text-align:center;
+  cursor:pointer;user-select:none;border-radius:5px;
+}
+.az-letter.az-active{color:var(--wine)}
+.az-letter.az-dim{color:var(--surface-3)}
+.az-bubble{
+  position:fixed;right:34px;
+  background:var(--wine-dark);color:#fff;font-weight:700;font-size:22px;
+  width:44px;height:44px;border-radius:50% 50% 4px 50%;
+  display:flex;align-items:center;justify-content:center;
+  z-index:15;pointer-events:none;
+  box-shadow:0 6px 16px rgba(0,0,0,0.28);
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="hero">
+    <div class="hero-top">
+      <div class="hero-brand">
+        <div class="hero-icon-wrap"><i class="material-symbols-outlined" aria-hidden="true">wine_bar</i></div>
+        <div>
+          <div class="hero-title">Wijnkelder</div>
+          <div class="hero-sub"><i class="material-symbols-outlined" style="font-size:11px;vertical-align:-1px" aria-hidden="true">lock</i> Persoonlijke kelder — alleen zichtbaar voor jou</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <button id="theme-toggle" onclick="cycleTheme()" aria-label="Thema wisselen" style="background:rgba(255,255,255,0.12);border:none;border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+          <i class="material-symbols-outlined" id="theme-toggle-icon" style="font-size:18px;color:#fff" aria-hidden="true">brightness_auto</i>
+        </button>
+        <div class="hero-date" id="hero-date"></div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat" style="background:rgba(21,128,61,0.25);border-color:rgba(100,200,100,0.2)"><div class="hstat-val" id="hs-nu" style="color:#86EFAC">0</div><div class="hstat-lbl">Nu drinken</div></div>
+      <div class="hstat" style="background:rgba(180,83,9,0.25);border-color:rgba(200,140,50,0.2)"><div class="hstat-val" id="hs-wt" style="color:#FCD34D">0</div><div class="hstat-lbl">Wachten</div></div>
+      <div class="hstat" id="hs-vb-wrap" style="cursor:pointer;background:rgba(153,27,27,0.25);border-color:rgba(220,80,80,0.2)" onclick="sw('kelder');setTimeout(()=>{document.getElementById('fsort').value='venster';renderList();},50)" title="Toon wijnen over hoogtepunt"><div class="hstat-val" id="hs-vb" style="color:#FCA5A5">0</div><div class="hstat-lbl">Over hoogtepunt</div></div>
+      <div class="hstat"><div class="hstat-val" id="hs-tot">0</div><div class="hstat-lbl">Flessen</div></div>
+    </div>
+  </div>
+</div>
+
+<main>
+<!-- KELDER -->
+<section id="sec-kelder" class="sec active" aria-label="Wijnkelder overzicht">
+  <div id="install-banner" class="install-banner" style="display:none">
+    <i class="material-symbols-outlined" aria-hidden="true">smartphone</i>
+    <div class="install-txt"><strong>Voeg toe aan beginscherm</strong>Op iPhone: deel-knop → "Zet op beginscherm". Op Android: menu → "App installeren".</div>
+    <span class="install-close" onclick="closeInstall()" role="button" aria-label="Sluiten">×</span>
+  </div>
+  <div id="sync-banner" style="display:none;border-radius:14px;padding:10px 14px;margin-bottom:12px;font-size:13px;line-height:1.5"></div>
+  <div class="filter-row">
+    <input type="search" id="search" placeholder="Zoeken op naam, druif, regio…" oninput="renderList()" aria-label="Zoeken">
+    <select id="ft" onchange="renderList()" aria-label="Filter op type">
+      <option value="">Alle typen</option>
+      <option>Rood</option><option>Wit</option><option>Rosé</option><option>Mousserend</option><option>Overig</option>
+    </select>
+    <select id="fsort" onchange="renderList()" aria-label="Sorteer">
+      <option value="naam" selected>Alfabet</option>
+      <option value="">Toegevoegd</option>
+      <option value="venster">Op dronk</option>
+      <option value="voorraad">Voorraad (hoog-laag)</option>
+    </select>
+  </div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button id="expand-all-toggle" class="btn-card" onclick="toggleExpandAll()">
+      <i class="material-symbols-outlined" aria-hidden="true">open_in_full</i> Alles uitklappen
+    </button>
+  </div>
+  <div id="wine-list" role="list" aria-label="Wijnlijst"></div>
+  <div id="az-bar" style="display:none"></div>
+  <!-- Drink last bottle modal -->
+  <div class="overlay" id="drink-modal" role="dialog" aria-modal="true" aria-labelledby="dm-title">
+    <div class="modal-box">
+      <div class="modal-title" id="dm-title">Laatste fles gedronken</div>
+      <div class="modal-sub" id="dm-sub">Bewaren als herinnering of verwijderen?</div>
+      <div class="modal-fr"><label>Met wie?</label><input type="text" id="dm-wie" placeholder="bijv. met familie"></div>
+      <div class="modal-fr"><label>Gelegenheid</label><input type="text" id="dm-gel" placeholder="bijv. verjaardagsdiner"></div>
+      <div class="modal-fr"><label>Notitie</label><textarea id="dm-note" placeholder="Hoe smaakte het?"></textarea></div>
+      <div class="modal-actions">
+        <button class="mbtn-keep" onclick="drinkConfirm('bewaar')"><i class="material-symbols-outlined" aria-hidden="true">favorite</i> Bewaren</button>
+        <button class="mbtn-del" onclick="drinkConfirm('verwijder')"><i class="material-symbols-outlined" aria-hidden="true">delete</i> Verwijderen</button>
+        <button class="mbtn-cancel" onclick="drinkConfirm('annuleer')">Annuleer</button>
+      </div>
+    </div>
+  </div>
+  <!-- Log bottle modal -->
+  <div class="overlay" id="log-modal" role="dialog" aria-modal="true" aria-labelledby="lm-title">
+    <div class="modal-box">
+      <div class="modal-title" id="lm-title">Fles gedronken</div>
+      <div class="modal-sub" id="lm-sub">Log deze fles in je drinkdagboek (optioneel).</div>
+      <div class="modal-fr"><label>Met wie?</label><input type="text" id="lm-wie" placeholder="bijv. met vrienden"></div>
+      <div class="modal-fr"><label>Gelegenheid</label><input type="text" id="lm-gel" placeholder="bijv. zomerbarbecue"></div>
+      <div class="modal-fr"><label>Notitie</label><textarea id="lm-note" placeholder="Hoe smaakte het?"></textarea></div>
+      <div class="modal-actions">
+        <button class="mbtn-save" onclick="logConfirm()"><i class="material-symbols-outlined" aria-hidden="true">check</i> Opslaan</button>
+        <button class="mbtn-cancel" onclick="closeLM()">Sla over</button>
+      </div>
+    </div>
+  </div>
+  <div class="fab-wrap"><button class="fab-add" onclick="clearForm();sw('toevoegen')" aria-label="Wijn toevoegen"><i class="material-symbols-outlined" aria-hidden="true">add</i></button></div>
+</section>
+
+<!-- TIJDLIJN -->
+<section id="sec-tijdlijn" class="sec" aria-label="Drinkvensters tijdlijn">
+  <div class="sec-hd"><i class="material-symbols-outlined" aria-hidden="true">timeline</i> Drinkvensters tijdlijn</div>
+  <div id="tl-content"></div>
+</section>
+
+<!-- DRINKLOG -->
+<section id="sec-log" class="sec" aria-label="Drinkdagboek">
+  <div class="sec-hd"><i class="material-symbols-outlined" aria-hidden="true">menu_book</i> Drinkdagboek</div>
+  <div id="log-count" style="font-size:13px;color:var(--slate-muted);margin-bottom:12px;margin-top:-8px"></div>
+  <div id="log-list"></div>
+</section>
+
+<!-- MELDINGEN -->
+<section id="sec-meldingen" class="sec" aria-label="Meldingen">
+  <div class="sec-hd"><i class="material-symbols-outlined" aria-hidden="true">notifications</i> Meldingen</div>
+  <div id="mel-content"></div>
+</section>
+
+<!-- TOEVOEGEN -->
+<section id="sec-toevoegen" class="sec" aria-label="Wijn toevoegen">
+  <div class="sec-hd"><i class="material-symbols-outlined" aria-hidden="true">add</i> Wijn toevoegen</div>
+  <div class="form-card">
+    <div class="form-sec-title"><i class="material-symbols-outlined" aria-hidden="true">inventory_2</i> Inventaris</div>
+
+    <div class="fr"><label for="f-naam">Naam</label><input type="text" id="f-naam" placeholder="bijv. Château Pichon Baron" autocomplete="off"></div>
+    <div class="two-col">
+      <div class="fr"><label for="f-type">Type</label>
+        <select id="f-type"><option>Rood</option><option>Wit</option><option>Rosé</option><option>Mousserend</option><option>Overig</option></select>
+      </div>
+      <div class="fr"><label for="f-regio">Regio</label><input type="text" id="f-regio" placeholder="bijv. Bordeaux"></div>
+    </div>
+    <div class="two-col">
+      <div class="fr"><label for="f-druif">Druif(ven)</label><input type="text" id="f-druif" placeholder="bijv. Nebbiolo"></div>
+      <div class="fr"><label for="f-prod">Producent</label><input type="text" id="f-prod" placeholder="bijv. Pichon Baron"></div>
+    </div>
+    <div class="two-col">
+      <div class="fr"><label for="f-jaar">Oogstjaar</label><input type="number" id="f-jaar" placeholder="2019" min="1950" max="2030" inputmode="numeric"></div>
+      <div class="fr"><label for="f-aantal">Aantal flessen</label><input type="number" id="f-aantal" value="1" min="1" inputmode="numeric"></div>
+    </div>
+    <div class="two-col">
+      <div class="fr"><label for="f-prijs">Aankoopprijs (€)</label><input type="number" id="f-prijs" placeholder="0.00" step="0.01" inputmode="decimal"></div>
+      <div class="fr"><label for="f-loc">Locatie in kast</label><input type="text" id="f-loc" placeholder="bijv. Rek B, vak 4"></div>
+    </div>
+    <div class="fr"><label for="f-herkomst">Hoe kom je eraan?</label><input type="text" id="f-herkomst" placeholder="bijv. Zelf gekocht, of gekregen van Peter"></div>
+  </div>
+  <div class="form-card">
+    <div class="form-sec-title"><i class="material-symbols-outlined" aria-hidden="true">event</i> Drinkvenster</div>
+    <div class="two-col">
+      <div class="fr"><label for="f-van">Drinken vanaf</label><input type="number" id="f-van" placeholder="2025" min="1990" max="2060" inputmode="numeric"></div>
+      <div class="fr"><label for="f-tm">Drinken t/m</label><input type="number" id="f-tm" placeholder="2032" min="1990" max="2060" inputmode="numeric"></div>
+    </div>
+  </div>
+  <div class="form-card">
+    <div class="form-sec-title"><i class="material-symbols-outlined" aria-hidden="true">star</i> Proefnotities</div>
+    <div class="fr">
+      <label>Beoordeling</label>
+      <div class="star-row" id="star-inp" role="group" aria-label="Sterren beoordeling">
+        <span class="star" onclick="setStar(1)" role="button" aria-label="1 ster" tabindex="0">★</span>
+        <span class="star" onclick="setStar(2)" role="button" aria-label="2 sterren" tabindex="0">★</span>
+        <span class="star" onclick="setStar(3)" role="button" aria-label="3 sterren" tabindex="0">★</span>
+        <span class="star" onclick="setStar(4)" role="button" aria-label="4 sterren" tabindex="0">★</span>
+        <span class="star" onclick="setStar(5)" role="button" aria-label="5 sterren" tabindex="0">★</span>
+      </div>
+    </div>
+    <div class="fr"><label for="f-note">Notities</label><textarea id="f-note" placeholder="Kleur, geur, smaak, afdronk…"></textarea></div>
+  </div>
+  <button class="btn-primary" onclick="saveWine()"><i class="material-symbols-outlined" aria-hidden="true">save</i> Wijn opslaan</button>
+  <div style="height:12px"></div>
+</section>
+
+<!-- ADVIES -->
+<section id="sec-advies" class="sec" aria-label="Wijnadvies bij het eten">
+  <div class="sec-hd"><i class="material-symbols-outlined" aria-hidden="true">restaurant</i> Wijn bij het eten</div>
+  <div class="filter-row" style="margin-bottom:10px">
+    <button class="btn-card" id="advies-mode-vrij" onclick="switchAdviesMode('vrij')" style="flex:1;justify-content:center;background:var(--wine-light);color:var(--wine)"><i class="material-symbols-outlined" aria-hidden="true">edit</i> Typ zelf</button>
+    <button class="btn-card" id="advies-mode-somm" onclick="switchAdviesMode('somm')" style="flex:1;justify-content:center"><i class="material-symbols-outlined" aria-hidden="true">local_bar</i> Stap voor stap</button>
+  </div>
+  <div id="advies-vrij-content">
+    <div class="form-card">
+      <p style="font-size:13px;color:var(--slate-muted);margin-bottom:10px;line-height:1.5">Typ wat je eet (en eventueel gezelschap/gelegenheid), dan zoek ik de beste opties uit jouw eigen aantekeningen — geen internet of sleutel nodig.</p>
+      <div class="fr">
+        <label for="food-input">Wat eet je?</label>
+        <textarea id="food-input" placeholder="bijv. gestoofd rundvlees, of pasta met romige saus…" style="min-height:60px"></textarea>
+      </div>
+      <div class="two-col">
+        <div class="fr"><label for="food-gezelschap">Gezelschap</label>
+          <select id="food-gezelschap">
+            <option value="">Geen voorkeur</option>
+            <option>Alleen</option><option>Partner</option><option>Vrienden</option><option>Familie</option><option>Zakelijk</option>
+          </select>
+        </div>
+        <div class="fr"><label for="food-gelegenheid">Gelegenheid</label><input type="text" id="food-gelegenheid" placeholder="bijv. verjaardag, doordeweeks"></div>
+      </div>
+      <button class="btn-primary" onclick="getWijnAdvies()"><i class="material-symbols-outlined" aria-hidden="true">auto_awesome</i> Zoek wijn uit mijn kelder</button>
+      <div id="food-result" style="margin:10px 0 0;display:none"></div>
+    </div>
+  </div>
+  <div id="advies-somm-content" style="display:none">
+    <div class="form-card">
+      <p style="font-size:13px;color:var(--slate-muted);margin-bottom:0;line-height:1.5">Beantwoord een paar vragen en ik kies een fles uit jouw eigen kelder — puur op basis van simpele logica, geen AI nodig.</p>
+    </div>
+    <div id="somm-content"></div>
+  </div>
+</section>
+
+<!-- INZICHTEN -->
+<section id="sec-insights" class="sec" aria-label="Inzichten">
+  <div class="sec-hd"><i class="material-symbols-outlined" aria-hidden="true">bar_chart</i> Inzichten</div>
+  <div id="insights-content"></div>
+</section>
+
+<!-- VERLANGLIJST -->
+<section id="sec-wishlist" class="sec" aria-label="Verlanglijst">
+  <div class="sec-hd"><i class="material-symbols-outlined" aria-hidden="true">favorite</i> Verlanglijst</div>
+  <div class="form-card">
+    <div class="form-sec-title"><i class="material-symbols-outlined" aria-hidden="true">add</i> Wijn op het lijstje zetten</div>
+    <div class="fr"><label for="wl-naam">Naam</label><input type="text" id="wl-naam" placeholder="bijv. Château Musar" autocomplete="off"></div>
+    <div class="two-col">
+      <div class="fr"><label for="wl-type">Type</label>
+        <select id="wl-type"><option>Rood</option><option>Wit</option><option>Rosé</option><option>Mousserend</option><option>Overig</option></select>
+      </div>
+      <div class="fr"><label for="wl-regio">Regio</label><input type="text" id="wl-regio" placeholder="bijv. Bekaa Valley"></div>
+    </div>
+    <div class="two-col">
+      <div class="fr"><label for="wl-druif">Druif(ven)</label><input type="text" id="wl-druif" placeholder="bijv. Cinsault"></div>
+      <div class="fr"><label for="wl-prod">Producent</label><input type="text" id="wl-prod" placeholder="bijv. Musar"></div>
+    </div>
+    <div class="fr"><label for="wl-prijs">Richtprijs (€)</label><input type="number" id="wl-prijs" placeholder="0.00" step="0.01" inputmode="decimal"></div>
+    <div class="fr"><label for="wl-note">Notitie</label><textarea id="wl-note" placeholder="Waarom wil je deze proberen? Wie tipte 'm?"></textarea></div>
+    <button class="btn-primary" onclick="addWishlistItem()"><i class="material-symbols-outlined" aria-hidden="true">favorite</i> Toevoegen aan verlanglijst</button>
+  </div>
+  <div id="wishlist-list"></div>
+
+  <!-- Wishlist edit modal -->
+  <div class="overlay" id="wl-edit-modal" role="dialog" aria-modal="true" aria-labelledby="wlm-title">
+    <div class="modal-box">
+      <div class="modal-title" id="wlm-title">Verlanglijst-item bewerken</div>
+      <div class="modal-fr"><label>Naam</label><input type="text" id="wlm-naam"></div>
+      <div class="modal-fr" style="display:flex;gap:8px">
+        <div style="flex:1"><label style="display:block;font-size:12px;color:var(--slate-mid);margin-bottom:3px;font-weight:500">Type</label>
+          <select id="wlm-type" style="width:100%;font-size:13px;padding:9px 11px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);background:var(--surface);color:var(--slate)">
+            <option>Rood</option><option>Wit</option><option>Rosé</option><option>Mousserend</option><option>Overig</option>
+          </select>
+        </div>
+        <div style="flex:1"><label style="display:block;font-size:12px;color:var(--slate-mid);margin-bottom:3px;font-weight:500">Richtprijs (€)</label>
+          <input type="number" id="wlm-prijs" step="0.01" style="width:100%;font-size:13px;padding:9px 11px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);background:var(--surface);color:var(--slate)">
+        </div>
+      </div>
+      <div class="modal-fr"><label>Regio</label><input type="text" id="wlm-regio"></div>
+      <div class="modal-fr"><label>Druif(ven)</label><input type="text" id="wlm-druif"></div>
+      <div class="modal-fr"><label>Producent</label><input type="text" id="wlm-prod"></div>
+      <div class="modal-fr"><label>Notitie</label><textarea id="wlm-note"></textarea></div>
+      <div class="modal-actions">
+        <button class="mbtn-save" onclick="saveWishlistModal()"><i class="material-symbols-outlined" aria-hidden="true">check</i> Opslaan</button>
+        <button class="mbtn-cancel" onclick="closeWishlistModal()">Annuleer</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPORT -->
+<section id="sec-export" class="sec" aria-label="Exporteren">
+  <div class="sec-hd"><i class="material-symbols-outlined" aria-hidden="true">download</i> Exporteren &amp; back-up</div>
+
+  <div class="export-grid">
+    <div class="exp-card" onclick="exportExcel()" role="button" tabindex="0">
+      <div class="exp-icon green"><i class="material-symbols-outlined" aria-hidden="true">table_chart</i></div>
+      <div class="exp-label">Excel</div><div class="exp-desc">.xlsx spreadsheet</div>
+    </div>
+    <div class="exp-card" onclick="exportCSV()" role="button" tabindex="0">
+      <div class="exp-icon amber"><i class="material-symbols-outlined" aria-hidden="true">description</i></div>
+      <div class="exp-label">CSV</div><div class="exp-desc">Universeel formaat</div>
+    </div>
+    <div class="exp-card" onclick="exportPDF()" role="button" tabindex="0">
+      <div class="exp-icon red"><i class="material-symbols-outlined" aria-hidden="true">picture_as_pdf</i></div>
+      <div class="exp-label">PDF overzicht</div><div class="exp-desc">Afdrukbaar</div>
+    </div>
+    <div class="exp-card" onclick="exportJSON()" role="button" tabindex="0">
+      <div class="exp-icon blue"><i class="material-symbols-outlined" aria-hidden="true">backup</i></div>
+      <div class="exp-label">Back-up</div><div class="exp-desc">JSON back-up</div>
+    </div>
+  </div>
+  <button class="btn-primary" style="margin-top:10px;background:var(--blue)" onclick="copyJSON()">
+    <i class="material-symbols-outlined" aria-hidden="true">content_paste</i> Back-up kopiëren naar klembord
+  </button>
+  <button class="btn-primary" style="margin-top:10px" onclick="document.getElementById('imp').click()">
+    <i class="material-symbols-outlined" aria-hidden="true">upload</i> Back-up importeren
+  </button>
+  <input type="file" id="imp" accept=".json" style="display:none" onchange="handleImport(event)">
+
+  <div class="form-card" style="margin-top:16px">
+    <div class="form-sec-title"><i class="material-symbols-outlined" aria-hidden="true">share</i> Kelder delen (alleen-lezen)</div>
+    <p style="font-size:13px;color:var(--slate-muted);margin-bottom:10px;line-height:1.5">Iemand anders kan meekijken zonder iets te kunnen wijzigen. Er is geen live koppeling — dit is een momentopname op het moment dat je 'm maakt.</p>
+    <button class="btn-primary" onclick="exportReadOnlyHTML()"><i class="material-symbols-outlined" aria-hidden="true">visibility</i> Alleen-lezen pagina downloaden</button>
+    <button class="btn-primary" style="margin-top:10px;background:var(--slate-mid)" onclick="generateCellarQR()"><i class="material-symbols-outlined" aria-hidden="true">qr_code_2</i> QR-code genereren</button>
+    <div id="qr-result" style="display:none;margin-top:14px">
+      <div id="qr-card" style="background:var(--wine-dark);border-radius:var(--radius-lg);padding:24px 18px;text-align:center;position:relative;overflow:hidden">
+        <div style="position:relative;z-index:1">
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:2px">
+            <i class="material-symbols-outlined" style="color:#fff;font-size:20px" aria-hidden="true">wine_bar</i>
+            <span style="font-family:var(--font-display);font-size:19px;font-weight:600;color:#fff">Wijnkelder</span>
+          </div>
+          <div id="qr-card-sub" style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:10px"></div>
+          <div id="qr-card-types" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px"></div>
+          <div style="display:inline-block;background:#fff;padding:14px;border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,0.25)">
+            <div id="qr-svg-holder"></div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--slate-muted);margin-top:8px;line-height:1.5;text-align:center">Scan met een QR-scanner of camera-app. Bevat naam, type, jaar en status van je flessen — geen prijzen of notities.</p>
+    </div>
+  </div>
+  <div style="height:12px"></div>
+</section>
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-hint" role="navigation" aria-label="Snelnavigatie">
+  <button class="bnh active" onclick="sw('kelder')" id="bn-kelder"><i class="material-symbols-outlined" aria-hidden="true">list</i> Kelder</button>
+  <button class="bnh" onclick="sw('tijdlijn')" id="bn-tijdlijn"><i class="material-symbols-outlined" aria-hidden="true">timeline</i> Tijdlijn</button>
+  <button class="bnh" onclick="sw('log')" id="bn-log"><i class="material-symbols-outlined" aria-hidden="true">menu_book</i> Dagboek</button>
+  <button class="bnh" onclick="sw('insights')" id="bn-insights"><i class="material-symbols-outlined" aria-hidden="true">bar_chart</i> Inzichten</button>
+  <button class="bnh" onclick="sw('wishlist')" id="bn-wishlist"><i class="material-symbols-outlined" aria-hidden="true">favorite</i> Verlanglijst</button>
+  <button class="bnh" onclick="sw('advies')" id="bn-advies"><i class="material-symbols-outlined" aria-hidden="true">restaurant</i> Advies</button>
+  <button class="bnh" onclick="sw('export')" id="bn-export"><i class="material-symbols-outlined" aria-hidden="true">download</i> Export</button>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Generic confirm modal (replaces native confirm(), which is blocked in this sandboxed environment) -->
+<div class="overlay" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="modal-box">
+    <div class="modal-title" id="confirm-title">Bevestigen</div>
+    <div class="modal-sub" id="confirm-msg"></div>
+    <div class="modal-actions">
+      <button class="mbtn-del" onclick="confirmAnswer(true)"><i class="material-symbols-outlined" aria-hidden="true">check</i> Doorgaan</button>
+      <button class="mbtn-cancel" onclick="confirmAnswer(false)">Annuleer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = new Array();
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw new Error('code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')');
+      }
+
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw new Error(row + ',' + col);
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createSvgTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg';
+      qrSvg += ' width="' + size + '"';
+      qrSvg += ' height="' + size + '"';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '"';
+      qrSvg += ' xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += ' shape-rendering="crispEdges"';
+      qrSvg += ' style="display:block;max-width:100%;height:auto"';
+      qrSvg += '>';
+      qrSvg += '<rect width="100%" height="100%" fill="white"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    return _this;
+  };
+
+  qrcode.stringToBytes = function(s) {
+    var bytes = new Array();
+    for (var i = 0; i < s.length; i += 1) {
+      var c = s.charCodeAt(i);
+      bytes.push(c & 0xff);
+    }
+    return bytes;
+  };
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw new Error('bad maskPattern:' + maskPattern);
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else if (type < 27) {
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else if (type < 41) {
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw new Error('mode:' + mode);
+        }
+
+      } else {
+        throw new Error('type:' + type);
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw new Error('glog(' + n + ')');
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw new Error(num.length + '/' + shift);
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw new Error('bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel);
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = new Array();
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  var qrBitBuffer = function() {
+
+    var _buffer = new Array();
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  return qrcode;
+}();
+
+</script>
+<script>
+const YEAR = new Date().getFullYear();
+const WARN = 2;
+let wines = [], dlog = [], wishlist = [], editId = null, curStar = 0, drinkTgt = null, logTgt = null, pendingWishlistBuyId = null;
+
+// Startdata: jouw kelder op het moment dat deze projectkopie werd gemaakt.
+// Wordt alleen gebruikt als er nog niets in de opslag staat (eerste keer openen van deze kopie).
+const SEED_WINES = [];
+
+// ── STORAGE ──
+// Prefers Claude's account-linked storage (syncs across devices when opened inside Claude).
+// Falls back to this browser's own IndexedDB when running as a standalone downloaded file
+// (no cross-device sync in that case, but your data won't silently disappear).
+const StoreDiag = { hasWindowStorage: false, lastError: null, cloudWorkedOnce: false, attempts: 0 };
+const Store = (() => {
+  const hasClaudeStorage = typeof window.storage !== 'undefined' && window.storage;
+  StoreDiag.hasWindowStorage = !!hasClaudeStorage;
+  let useCloud = !!hasClaudeStorage; // may auto-downgrade to false at runtime if the cloud call keeps failing
+  let idbPromise = null;
+  function openIdb() {
+    if (idbPromise) return idbPromise;
+    idbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open('wijnkelder_local', 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore('kv'); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return idbPromise;
+  }
+  async function idbGet(key) {
+    const db = await openIdb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('kv', 'readonly').objectStore('kv').get(key);
+      tx.onsuccess = () => resolve(tx.result !== undefined ? { key, value: tx.result } : null);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function idbSet(key, value) {
+    const db = await openIdb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('kv', 'readwrite').objectStore('kv').put(value, key);
+      tx.onsuccess = () => resolve({ key, value });
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  // Retry helper: on a slow/flaky mobile connection a single attempt can easily fail.
+  // Give it several tries with growing pauses before giving up.
+  async function withRetry(fn, attempts = 4, delayMs = 500) {
+    let lastErr = null;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const r = await fn();
+        if (r) return r;
+        lastErr = new Error('empty result');
+      } catch (e) { lastErr = e; }
+      if (i < attempts - 1) await new Promise(res => setTimeout(res, delayMs * (i + 1)));
+    }
+    throw lastErr || new Error('storage failed');
+  }
+  return {
+    get usingLocalFallback() { return !useCloud; },
+    retryCloud() {
+      // Re-arm the cloud attempt (e.g. after a transient backend error) without needing a full page reload.
+      if (StoreDiag.hasWindowStorage) { useCloud = true; StoreDiag.lastError = null; return true; }
+      return false; // window.storage genuinely doesn't exist here — retrying won't help
+    },
+    async get(key, shared = false) {
+      if (useCloud) {
+        StoreDiag.attempts++;
+        try {
+          const r = await window.storage.get(key, shared);
+          StoreDiag.cloudWorkedOnce = true; StoreDiag.lastError = null;
+          return r;
+        }
+        catch (e) {
+          // NOTE: the storage API throws an error for a key that simply doesn't exist yet
+          // (documented behavior, not a real outage). We must not treat that as "cloud is broken" —
+          // otherwise every first-time load (nothing saved yet under this key) looks like a failure.
+          // Only a failed *write* (set) is treated as a genuine sign that cloud sync isn't working.
+          const msg = (e && (e.message || String(e))) || '';
+          const looksLikeMissingKey = /internal server error/i.test(msg); // this is the shape a missing-key lookup takes today
+          if (!looksLikeMissingKey) { StoreDiag.lastError = msg || 'onbekende fout'; useCloud = false; }
+          try { const local = await idbGet(key); if (local) return local; } catch {}
+          return null; // treat as "nothing saved yet" rather than a hard failure
+        }
+      }
+      return idbGet(key);
+    },
+    async set(key, value, shared = false) {
+      if (useCloud) {
+        StoreDiag.attempts++;
+        try {
+          const r = await withRetry(() => window.storage.set(key, value, shared));
+          StoreDiag.cloudWorkedOnce = true; StoreDiag.lastError = null;
+          return r;
+        }
+        catch (e) {
+          StoreDiag.lastError = (e && (e.message || String(e))) || 'onbekende fout';
+          useCloud = false;
+          // Still save it locally so nothing is lost, even though cloud sync isn't working right now.
+          return idbSet(key, value);
+        }
+      }
+      return idbSet(key, value);
+    }
+  };
+})();
+
+// Cellar data (wines + drinklog) is personal to your account — not shared with other users.
+// UI preferences (like "install banner dismissed") stay personal to this device.
+let storageReady = false;
+let installDismissed = false;
+let saveErrorShown = false;
+async function saveAll() {
+  try {
+    await Store.set('wijnkelder-data', JSON.stringify({ wines, log: dlog, wishlist }), false);
+    saveErrorShown = false;
+  } catch (e) {
+    console.error('Opslaan mislukt:', e);
+    if (!saveErrorShown) { saveErrorShown = true; toast('Opslaan lukte niet — je wijzigingen blijven zichtbaar, probeer het zo nog eens.'); }
+  }
+  renderSyncBanner();
+}
+async function pw() { return saveAll(); }
+async function pl() { return saveAll(); }
+
+async function load() {
+  let usedSeed = false;
+  let migratedOld = false;
+  let personalFound = false;
+  // Personal storage is now the source of truth.
+  try {
+    const rp2 = await Store.get('wijnkelder-data', false);
+    if (rp2 && rp2.value) {
+      const d = JSON.parse(rp2.value);
+      wines = d.wines || [];
+      dlog = d.log || [];
+      wishlist = d.wishlist || [];
+      personalFound = true;
+    }
+  } catch {} // personal key doesn't exist yet — fall through to migration below
+  if (!personalFound) {
+    // Nothing personal yet — recover from the old shared cellar (if this app used to be shared)
+    // or from an even older, personal-only version of this app, so nothing gets lost.
+    let oldWines = null, oldLog = null;
+    try {
+      const rshared = await Store.get('wijnkelder-data', true);
+      if (rshared && rshared.value) { const d = JSON.parse(rshared.value); oldWines = d.wines; oldLog = d.log; }
+    } catch {}
+    if (!oldWines) { try { const rw = await Store.get('wines'); if (rw && rw.value) oldWines = JSON.parse(rw.value); } catch {} }
+    if (!oldLog) { try { const rl = await Store.get('log'); if (rl && rl.value) oldLog = JSON.parse(rl.value); } catch {} }
+    if (oldWines) {
+      wines = oldWines; dlog = oldLog || []; migratedOld = true;
+    } else {
+      wines = SEED_WINES.slice(); usedSeed = true;
+    }
+  }
+  if (usedSeed || migratedOld) { saveAll(); } // persist so it's there under the personal key next time too
+  try {
+    const rp = await Store.get('wijnkelder-prefs');
+    if (rp && rp.value) {
+      const prefs = JSON.parse(rp.value);
+      installDismissed = !!prefs.installDismissed;
+      if (prefs.themeMode === 'light' || prefs.themeMode === 'dark' || prefs.themeMode === 'auto') themeMode = prefs.themeMode;
+    }
+  } catch {}
+  applyTheme();
+  storageReady = true;
+  renderList(); updateStats(); renderAlerts(); renderLog(); renderTimeline();
+  // Set date
+  const d = new Date();
+  document.getElementById('hero-date').textContent = d.toLocaleDateString('nl-NL', {day:'numeric',month:'long',year:'numeric'});
+  renderSyncBanner();
+  // Install banner
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if ((isIOS || /android/i.test(navigator.userAgent)) && !isStandalone && !installDismissed) {
+    document.getElementById('install-banner').style.display = 'flex';
+  }
+}
+
+function renderSyncBanner() {
+  const el = document.getElementById('sync-banner');
+  if (!el) return;
+  if (!Store.usingLocalFallback) {
+    // Cloud sync working — no need to nag the user, just a subtle confirmation once.
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'block';
+  let reason, detail;
+  if (!StoreDiag.hasWindowStorage) {
+    reason = 'Cloud-opslag is in deze weergave niet beschikbaar (window.storage bestaat niet).';
+    detail = 'Dit gebeurt als de app niet als live Claude-artifact draait (bijv. een gedownload of losstaand geopend bestand).';
+  } else if (StoreDiag.lastError) {
+    reason = 'Cloud-opslag gaf een fout en werkt daardoor nu niet.';
+    detail = 'Foutmelding: ' + StoreDiag.lastError;
+  } else {
+    reason = 'Cloud-opslag is niet actief.';
+    detail = 'Onbekende reden.';
+  }
+  el.style.background = 'var(--amber-light)';
+  el.style.border = '0.5px solid rgba(180,83,9,0.3)';
+  el.style.color = '#78350F';
+  const canRetry = StoreDiag.hasWindowStorage;
+  el.innerHTML = `<div style="font-weight:500;display:flex;align-items:center;gap:6px;margin-bottom:4px"><i class="material-symbols-outlined" aria-hidden="true">cloud_off</i> Niet gesynchroniseerd met andere apparaten</div>
+    <div>${reason}</div>
+    <div style="margin-top:4px;opacity:.85">${detail}</div>
+    <div style="margin-top:6px;font-size:12px;opacity:.85">Tip: gebruik ondertussen "Back-up kopiëren naar klembord" op dit toestel en "Back-up importeren" op je andere toestel om bij te werken.</div>
+    ${canRetry ? `<button id="sync-retry-btn" class="btn-card" style="margin-top:8px;background:#fff;border-color:rgba(180,83,9,0.35);color:#78350F" onclick="retrySync()"><i class="material-symbols-outlined" aria-hidden="true">refresh</i> Opnieuw proberen</button>` : ''}`;
+}
+
+let syncRetryBusy = false;
+async function retrySync() {
+  if (syncRetryBusy) return;
+  syncRetryBusy = true;
+  const btn = document.getElementById('sync-retry-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="material-symbols-outlined" aria-hidden="true">autorenew</i> Bezig…'; }
+  const reArmed = Store.retryCloud();
+  if (!reArmed) { syncRetryBusy = false; renderSyncBanner(); return; }
+  try {
+    // Check whether the cloud already has newer data (e.g. saved from another device)
+    // before we blindly overwrite it with what's in memory on this device.
+    const remote = await Store.get('wijnkelder-data', false);
+    if (remote && remote.value) {
+      const d = JSON.parse(remote.value);
+      const remoteWines = d.wines || [], remoteLog = d.log || [], remoteWishlist = d.wishlist || [];
+      const localCount = wines.length, remoteCount = remoteWines.length;
+      if (remoteCount !== localCount || JSON.stringify(remoteLog) !== JSON.stringify(dlog) || JSON.stringify(remoteWishlist) !== JSON.stringify(wishlist)) {
+        const ok = await showConfirm(
+          `Er is data in de cloud gevonden (${remoteCount} wijnen) die kan afwijken van wat je nu op dit scherm ziet (${localCount} wijnen). Wil je de cloud-versie overnemen? Kies "Annuleer" om in plaats daarvan jouw huidige scherm-versie naar de cloud te sturen.`
+        );
+        if (ok) {
+          wines = remoteWines; dlog = remoteLog; wishlist = remoteWishlist;
+          renderList(); updateStats(); renderAlerts(); renderLog(); renderTimeline();
+        } else {
+          await saveAll();
+        }
+      }
+      // else: identical already, nothing to do
+    } else {
+      // Nothing in the cloud yet under this key — push what we have now.
+      await saveAll();
+    }
+    if (!Store.usingLocalFallback) toast('Cloud-sync werkt weer!');
+  } catch (e) {
+    console.error(e);
+  }
+  syncRetryBusy = false;
+  renderSyncBanner();
+}
+
+let themeMode = 'auto';
+
+async function savePrefs() {
+  try { await Store.set('wijnkelder-prefs', JSON.stringify({ installDismissed, themeMode })); } catch {}
+}
+
+async function closeInstall() {
+  document.getElementById('install-banner').style.display = 'none';
+  installDismissed = true;
+  savePrefs();
+}
+
+function applyTheme() {
+  if (themeMode === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', themeMode);
+  const icon = document.getElementById('theme-toggle-icon');
+  if (icon) icon.textContent = themeMode === 'dark' ? 'dark_mode' : themeMode === 'light' ? 'light_mode' : 'brightness_auto';
+}
+
+function cycleTheme() {
+  themeMode = themeMode === 'auto' ? 'light' : themeMode === 'light' ? 'dark' : 'auto';
+  applyTheme();
+  savePrefs();
+  const label = themeMode === 'auto' ? 'Systeeminstelling' : themeMode === 'light' ? 'Licht' : 'Donker';
+  toast('Thema: ' + label);
+}
+
+// ── BADGE LOGIC ──
+function bdg(w) {
+  if (!w.van && !w.tm) return { c: 'b-nv', t: 'Geen venster', s: 'nvt', icon: 'help' };
+  const van = w.van ? +w.van : null, tm = w.tm ? +w.tm : null;
+  if (van && YEAR < van) {
+    const j = van - YEAR;
+    return { c: j <= WARN ? 'b-bj' : 'b-wt', t: 'Nog ' + j + ' jr', s: 'wt', icon: 'schedule', bj: j <= WARN };
+  }
+  if (tm && YEAR > tm) return { c: 'b-vb', t: 'Over hoogtepunt', s: 'vb', icon: 'warning' };
+  const bv = tm && (tm - YEAR) <= WARN;
+  return { c: bv ? 'b-bj' : 'b-nu', t: 'Nu drinken', s: 'nu', icon: 'check', bv };
+}
+
+function prog(w) {
+  if (!w.van || !w.tm) return null;
+  const van = +w.van, tm = +w.tm;
+  if (tm <= van) return null;
+  const tot = tm - van, el = Math.min(Math.max(YEAR - van, 0), tot);
+  return { pct: Math.round(el / tot * 100), vb: YEAR > tm, wt: YEAR < van };
+}
+
+function colorAccent(type) {
+  const t = (type || '').toLowerCase();
+  if (t === 'rood') return 'rood';
+  if (t === 'wit') return 'wit';
+  if (t === 'rosé' || t === 'rose') return 'rosé';
+  if (t === 'mousserend') return 'mousserend';
+  return 'overig';
+}
+
+// ── STATS ──
+function updateStats() {
+  let nu = 0, wt = 0, vb = 0, tot = 0;
+  wines.forEach(w => {
+    const n = +w.aantal || 0; tot += n;
+    const s = bdg(w).s;
+    if (s === 'nu') nu += n;
+    else if (s === 'wt') wt += n;
+    else if (s === 'vb') vb += n;
+    else nu += n; // geen drinkvenster ingevuld -> telt mee als "nu drinken" zodat totaal klopt
+  });
+  document.getElementById('hs-nu').textContent = nu;
+  document.getElementById('hs-wt').textContent = wt;
+  document.getElementById('hs-vb').textContent = vb;
+  document.getElementById('hs-tot').textContent = tot;
+}
+
+// ── RENDER LIST ──
+const collapsedIds = new Set();
+let lastRenderedIds = [];
+function toggleExpand(e, id) {
+  e.stopPropagation();
+  if (collapsedIds.has(id)) collapsedIds.delete(id);
+  else collapsedIds.add(id);
+  renderList();
+}
+
+function updateExpandAllLabel() {
+  const btn = document.getElementById('expand-all-toggle');
+  if (!btn) return;
+  const allOpen = lastRenderedIds.length > 0 && lastRenderedIds.every(id => !collapsedIds.has(id));
+  btn.innerHTML = allOpen
+    ? '<i class="material-symbols-outlined" aria-hidden="true">close_fullscreen</i> Alles inklappen'
+    : '<i class="material-symbols-outlined" aria-hidden="true">open_in_full</i> Alles uitklappen';
+}
+
+function toggleExpandAll() {
+  const allOpen = lastRenderedIds.length > 0 && lastRenderedIds.every(id => !collapsedIds.has(id));
+  if (allOpen) lastRenderedIds.forEach(id => collapsedIds.add(id));
+  else lastRenderedIds.forEach(id => collapsedIds.delete(id));
+  renderList();
+}
+
+const NOTE_LABELS = ['wijnhuis', 'wijn & jaargang', 'wijn en jaargang', 'lekker bij'];
+function renderStructuredNote(note) {
+  if (!note) return '';
+  const blocks = note.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+  const isStructured = blocks.some(b => {
+    const m = b.match(/^([^:]{1,30}):\s*/);
+    return m && NOTE_LABELS.includes(m[1].trim().toLowerCase());
+  });
+  if (!isStructured) return `<div class="wc-notes">${note}</div>`;
+  const sections = blocks.map(b => {
+    const m = b.match(/^([^:]{1,30}):\s*([\s\S]*)$/);
+    if (m && NOTE_LABELS.includes(m[1].trim().toLowerCase())) {
+      return `<div class="note-section"><span class="note-label">${m[1].trim()}</span><span class="note-body">${m[2].trim()}</span></div>`;
+    }
+    return `<div class="note-section"><span class="note-body">${b}</span></div>`;
+  }).join('');
+  return `<div class="wc-notes wc-notes-structured">${sections}</div>`;
+}
+
+function buildWineChips(w) {
+  return [
+    w.regio ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">location_on</i>${w.regio}</span>` : '',
+    w.druif ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">eco</i>${w.druif}</span>` : '',
+    w.jaar ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">calendar_month</i>${w.jaar}</span>` : '',
+    w.loc ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">stacks</i>${w.loc}</span>` : '',
+    w.prijs ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">sell</i>€${parseFloat(w.prijs).toFixed(2)}</span>` : '',
+    w.herkomst && w.herkomst.trim().toLowerCase() !== 'zelf gekocht' ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">redeem</i>${w.herkomst}</span>` : ''
+  ].filter(Boolean).join('');
+}
+
+function renderWineCard(w) {
+  const b = bdg(w), p = prog(w), cc = colorAccent(w.type);
+  const n = +w.aantal || 0;
+  const isAlert = b.bj || b.bv || b.s === 'vb';
+  const isOpen = !collapsedIds.has(w.id);
+  const subParts = [w.type, w.jaar, w.druif].filter(Boolean).join(' · ');
+  const chips = buildWineChips(w);
+  const stars = w.sterren ? `<div class="wc-stars">${'★'.repeat(w.sterren)}<span style="color:var(--surface-3)">${'★'.repeat(5 - w.sterren)}</span></div>` : '';
+  const pbar = p ? `<div class="dbar-wrap">
+      <div class="dbar-lbl"><span>${w.van}–${w.tm}</span><span>${p.pct}% van venster</span></div>
+      <div class="dbar"><div class="df${p.vb ? ' dv' : p.wt ? ' dw' : ''}" style="width:${p.pct}%"></div></div>
+    </div>` : '';
+  const notes = renderStructuredNote(w.note);
+  const firstLetter = (w.naam || '#').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return `<article class="wine-card${isAlert ? ' alert' : ''}" data-letter="${/[A-Z]/.test(firstLetter) ? firstLetter : '#'}" role="listitem">
+      <div class="wc-accent ${cc}"></div>
+      <div class="wcc-row" style="cursor:pointer" onclick="toggleExpand(event,${w.id})">
+        <div class="wcc-main">
+          <div class="wcc-name">${w.naam}</div>
+          <div class="wcc-sub">${subParts}</div>
+        </div>
+        <span class="bdg ${b.c}"><i class="material-symbols-outlined" aria-hidden="true">${b.icon}</i>${b.t}</span>
+        <span class="wcc-stock">${n} fl.</span>
+        <i class="material-symbols-outlined wc-chevron${isOpen ? ' open' : ''}" aria-hidden="true">expand_more</i>
+      </div>
+      <div class="wc-extra${isOpen ? ' open' : ''}">
+        <div class="wc-extra-inner">
+          <div class="wc-chips">${chips}</div>
+          ${stars}${pbar}${notes}
+        </div>
+        <div class="wc-footer">
+          <div class="stock-row">
+            <i class="material-symbols-outlined" style="font-size:13px;color:var(--slate-muted)" aria-hidden="true">stacks</i>
+            <span class="stock-lbl">Voorraad:</span>
+            <span class="stock-num">${n} fl.</span>
+          </div>
+          <button class="btn-card btn-drink" onclick="drinkOne(${w.id})"><i class="material-symbols-outlined" aria-hidden="true">local_bar</i> Gedronken</button>
+          <button class="btn-card" onclick="editWine(${w.id})" aria-label="Bewerken"><i class="material-symbols-outlined" aria-hidden="true">edit</i></button>
+          <button class="btn-card btn-del" onclick="deleteWine(${w.id})" aria-label="Verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
+        </div>
+      </div>
+    </article>`;
+}
+
+const GROUP_LABELS = { vb: 'Over hoogtepunt', nu: 'Nu drinken', wt: 'Wachten', nvt: 'Geen venster' };
+const GROUP_ICONS  = { vb: 'warning', nu: 'check', wt: 'schedule', nvt: 'help' };
+const GROUP_CLASS  = { vb: 'g-vb', nu: 'g-nu', wt: 'g-wt', nvt: 'g-nvt' };
+
+function renderList() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const ft = document.getElementById('ft').value;
+  const sortBy = document.getElementById('fsort').value;
+  const list = wines.filter(w => {
+    const m = !q || (w.naam||'').toLowerCase().includes(q) || (w.prod||'').toLowerCase().includes(q) || (w.regio||'').toLowerCase().includes(q) || (w.druif||'').toLowerCase().includes(q);
+    return m && (!ft || w.type === ft);
+  });
+  if (sortBy === 'naam') {
+    list.sort((a, b) => (a.naam || '').localeCompare(b.naam || '', 'nl', { sensitivity: 'base' }));
+  } else if (sortBy === 'venster') {
+    // Sorteer op wanneer een wijn opgedronken moet zijn (kleinste "t/m" eerst); geen venster = onderaan.
+    list.sort((a, b) => {
+      const ta = a.tm ? +a.tm : Infinity, tb = b.tm ? +b.tm : Infinity;
+      if (ta !== tb) return ta - tb;
+      const va = a.van ? +a.van : Infinity, vb = b.van ? +b.van : Infinity;
+      return va - vb;
+    });
+  } else if (sortBy === 'voorraad') {
+    list.sort((a, b) => {
+      const na = +a.aantal || 0, nb = +b.aantal || 0;
+      if (nb !== na) return nb - na;
+      return (a.naam || '').localeCompare(b.naam || '', 'nl', { sensitivity: 'base' });
+    });
+  }
+  const el = document.getElementById('wine-list');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">
+      <i class="material-symbols-outlined" aria-hidden="true">wine_bar</i>
+      <p>${wines.length === 0
+        ? 'Je kelder is nog leeg.<br><strong>Voeg je eerste wijn toe</strong> via het + tabblad.'
+        : 'Geen wijnen gevonden voor deze filters.'}</p>
+    </div>`;
+    return;
+  }
+  if (sortBy === 'venster') {
+    // Groepeer op status (Over hoogtepunt / Nu drinken / Wachten / Geen venster) met een kopje per groep.
+    const groups = { vb: [], nu: [], wt: [], nvt: [] };
+    list.forEach(w => groups[bdg(w).s].push(w));
+    el.innerHTML = ['vb', 'nu', 'wt', 'nvt'].map(k => {
+      if (!groups[k].length) return '';
+      return `<div class="group-hd ${GROUP_CLASS[k]}"><i class="material-symbols-outlined" aria-hidden="true">${GROUP_ICONS[k]}</i>${GROUP_LABELS[k]}<span class="group-count">${groups[k].length}</span></div>`
+        + groups[k].map(renderWineCard).join('');
+    }).join('');
+  } else {
+    el.innerHTML = list.map(renderWineCard).join('');
+  }
+  lastRenderedIds = list.map(w => w.id);
+  updateExpandAllLabel();
+  renderAzBar(sortBy === 'naam' ? list : null);
+}
+
+const AZ_LETTERS = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+function renderAzBar(list) {
+  const bar = document.getElementById('az-bar');
+  if (!list || list.length < 8) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  const available = new Set(list.map(w => {
+    const l = (w.naam || '#').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return /[A-Z]/.test(l) ? l : '#';
+  }));
+  bar.innerHTML = AZ_LETTERS.map(l =>
+    `<span class="az-letter ${available.has(l) ? 'az-active' : 'az-dim'}" data-l="${l}">${l}</span>`
+  ).join('');
+  bar.style.display = 'flex';
+}
+
+function jumpToAzLetter(letter) {
+  const list = document.getElementById('wine-list');
+  let target = list.querySelector(`[data-letter="${letter}"]`);
+  if (!target) {
+    // geen exacte match: pak de eerstvolgende letter die wel bestaat
+    const idx = AZ_LETTERS.indexOf(letter);
+    for (let i = idx + 1; i < AZ_LETTERS.length && !target; i++) {
+      target = list.querySelector(`[data-letter="${AZ_LETTERS[i]}"]`);
+    }
+  }
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showAzBubble(letter, clientY) {
+  let bubble = document.getElementById('az-bubble');
+  if (!bubble) {
+    bubble = document.createElement('div');
+    bubble.id = 'az-bubble';
+    bubble.className = 'az-bubble';
+    document.body.appendChild(bubble);
+  }
+  bubble.style.top = (clientY - 22) + 'px';
+  bubble.textContent = letter;
+}
+function hideAzBubble() {
+  const bubble = document.getElementById('az-bubble');
+  if (bubble) bubble.remove();
+}
+
+let azHideTimeout = null;
+function showAzBar() {
+  const bar = document.getElementById('az-bar');
+  if (!bar || bar.style.display === 'none') return; // niet relevant (verkeerde sortering / te weinig wijnen)
+  bar.classList.add('az-visible');
+  clearTimeout(azHideTimeout);
+  azHideTimeout = setTimeout(() => bar.classList.remove('az-visible'), 1300);
+}
+
+function initAzBar() {
+  const bar = document.getElementById('az-bar');
+  let dragging = false;
+
+  function letterAt(clientY) {
+    const el = document.elementFromPoint(bar.getBoundingClientRect().left + bar.offsetWidth / 2, clientY);
+    return el && el.classList.contains('az-letter') ? el.dataset.l : null;
+  }
+
+  window.addEventListener('scroll', showAzBar, { passive: true });
+
+  bar.addEventListener('pointerdown', e => {
+    dragging = true;
+    bar.setPointerCapture(e.pointerId);
+    clearTimeout(azHideTimeout);
+    const l = letterAt(e.clientY);
+    if (l) { jumpToAzLetter(l); showAzBubble(l, e.clientY); }
+  });
+  bar.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    e.preventDefault();
+    const l = letterAt(e.clientY);
+    if (l) { jumpToAzLetter(l); showAzBubble(l, e.clientY); }
+  });
+  bar.addEventListener('pointerup', () => { dragging = false; hideAzBubble(); showAzBar(); });
+  bar.addEventListener('pointercancel', () => { dragging = false; hideAzBubble(); });
+}
+
+// ── VERLANGLIJST ──
+function renderWishlist() {
+  const el = document.getElementById('wishlist-list');
+  if (!wishlist.length) {
+    el.innerHTML = '<div class="empty"><i class="material-symbols-outlined" aria-hidden="true">favorite</i><p>Nog niets op je verlanglijst.<br>Zet hierboven een wijn op het lijstje die je nog wilt proberen.</p></div>';
+    return;
+  }
+  const s = [...wishlist].sort((a, b) => b.ts - a.ts);
+  el.innerHTML = s.map(w => {
+    const chips = [
+      w.type ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">wine_bar</i>${w.type}</span>` : '',
+      w.regio ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">location_on</i>${w.regio}</span>` : '',
+      w.druif ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">eco</i>${w.druif}</span>` : '',
+      w.prijs ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">sell</i>±€${parseFloat(w.prijs).toFixed(2)}</span>` : ''
+    ].filter(Boolean).join('');
+    return `<div class="log-item">
+      <div class="log-name">${w.naam}</div>
+      ${chips ? `<div class="wc-chips" style="margin-top:6px">${chips}</div>` : ''}
+      ${w.note ? `<div class="log-note">${w.note}</div>` : ''}
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn-card btn-drink" onclick="buyWishlistItem(${w.id})"><i class="material-symbols-outlined" aria-hidden="true">shopping_cart</i> Gekocht → kelder</button>
+        <button class="btn-card" onclick="editWishlistItem(${w.id})" aria-label="Bewerken"><i class="material-symbols-outlined" aria-hidden="true">edit</i></button>
+        <button class="btn-card btn-del" onclick="deleteWishlistItem(${w.id})" aria-label="Verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let editWlId = null;
+
+function editWishlistItem(id) {
+  const w = wishlist.find(x => x.id === id); if (!w) return;
+  editWlId = id;
+  document.getElementById('wlm-naam').value = w.naam || '';
+  document.getElementById('wlm-type').value = w.type || 'Rood';
+  document.getElementById('wlm-regio').value = w.regio || '';
+  document.getElementById('wlm-druif').value = w.druif || '';
+  document.getElementById('wlm-prod').value = w.prod || '';
+  document.getElementById('wlm-prijs').value = w.prijs || '';
+  document.getElementById('wlm-note').value = w.note || '';
+  document.getElementById('wl-edit-modal').classList.add('open');
+}
+
+function closeWishlistModal() {
+  document.getElementById('wl-edit-modal').classList.remove('open');
+  editWlId = null;
+}
+
+function saveWishlistModal() {
+  const naam = (document.getElementById('wlm-naam').value || '').trim();
+  if (!naam) { toast('Vul minimaal een naam in.'); return; }
+  const w = wishlist.find(x => x.id === editWlId);
+  if (!w) { closeWishlistModal(); return; }
+  w.naam = naam;
+  w.type = document.getElementById('wlm-type').value;
+  w.regio = document.getElementById('wlm-regio').value.trim();
+  w.druif = document.getElementById('wlm-druif').value.trim();
+  w.prod = document.getElementById('wlm-prod').value.trim();
+  w.prijs = document.getElementById('wlm-prijs').value;
+  w.note = document.getElementById('wlm-note').value.trim();
+  closeWishlistModal();
+  pw();
+  renderWishlist();
+  toast('Verlanglijst-item bijgewerkt!');
+}
+
+function addWishlistItem() {
+  const naam = (document.getElementById('wl-naam').value || '').trim();
+  if (!naam) { toast('Vul minimaal een naam in.'); return; }
+  wishlist.push({
+    id: Date.now(),
+    naam,
+    type: document.getElementById('wl-type').value,
+    regio: document.getElementById('wl-regio').value.trim(),
+    druif: document.getElementById('wl-druif').value.trim(),
+    prod: document.getElementById('wl-prod').value.trim(),
+    prijs: document.getElementById('wl-prijs').value,
+    note: document.getElementById('wl-note').value.trim(),
+    ts: Date.now()
+  });
+  ['wl-naam', 'wl-regio', 'wl-druif', 'wl-prod', 'wl-prijs', 'wl-note'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('wl-type').value = 'Rood';
+  pw();
+  renderWishlist();
+  toast('Toegevoegd aan verlanglijst!');
+}
+
+async function deleteWishlistItem(id) {
+  const ok = await showConfirm('Dit item van je verlanglijst verwijderen?');
+  if (!ok) return;
+  wishlist = wishlist.filter(w => w.id !== id);
+  if (editWlId === id) closeWishlistModal();
+  pw();
+  renderWishlist();
+}
+
+function buyWishlistItem(id) {
+  const w = wishlist.find(x => x.id === id); if (!w) return;
+  clearForm(); // reset het toevoeg-formulier naar een lege, nieuwe wijn
+  document.getElementById('f-naam').value = w.naam || '';
+  document.getElementById('f-type').value = w.type || 'Rood';
+  document.getElementById('f-regio').value = w.regio || '';
+  document.getElementById('f-druif').value = w.druif || '';
+  document.getElementById('f-prod').value = w.prod || '';
+  document.getElementById('f-prijs').value = w.prijs || '';
+  document.getElementById('f-note').value = w.note || '';
+  document.getElementById('f-herkomst').value = 'Zelf gekocht';
+  pendingWishlistBuyId = id;
+  sw('toevoegen');
+  toast("Vul de details aan en sla op om 'm aan je kelder toe te voegen.");
+}
+
+// ── SOMMELIER (beslisboom, pure logica) ──
+const SOMM_QUESTIONS = [
+  {
+    key: 'gelegenheid', text: 'Wat is de gelegenheid?',
+    options: [
+      { label: 'Doordeweeks / alledaags', value: 'alledaags' },
+      { label: 'Aperitief / borrel', value: 'aperitief' },
+      { label: 'Romantisch diner', value: 'romantisch' },
+      { label: 'Speciale gelegenheid', value: 'speciaal' }
+    ]
+  },
+  {
+    key: 'eten', text: 'Wat eet je erbij?',
+    options: [
+      { label: 'Niets, puur de borrel', value: 'geen' },
+      { label: 'Vis / lichte gerechten', value: 'vis' },
+      { label: 'Vlees / stevige gerechten', value: 'vlees' },
+      { label: 'Kaas / toetje', value: 'kaas' }
+    ]
+  },
+  {
+    key: 'stemming', text: 'Waar heb je zin in?',
+    options: [
+      { label: 'Fris & luchtig', value: 'fris' },
+      { label: 'Vol & krachtig', value: 'vol' },
+      { label: 'Verrassend & bijzonder', value: 'verrassend' }
+    ]
+  }
+];
+let sommStep = 0;
+let sommAnswers = {};
+
+let adviesMode = 'vrij';
+function switchAdviesMode(mode) {
+  adviesMode = mode;
+  document.getElementById('advies-vrij-content').style.display = mode === 'vrij' ? 'block' : 'none';
+  document.getElementById('advies-somm-content').style.display = mode === 'somm' ? 'block' : 'none';
+  document.getElementById('advies-mode-vrij').classList.toggle('active', mode === 'vrij');
+  document.getElementById('advies-mode-somm').classList.toggle('active', mode === 'somm');
+  document.getElementById('advies-mode-vrij').style.background = mode === 'vrij' ? 'var(--wine-light)' : '';
+  document.getElementById('advies-mode-vrij').style.color = mode === 'vrij' ? 'var(--wine)' : '';
+  document.getElementById('advies-mode-somm').style.background = mode === 'somm' ? 'var(--wine-light)' : '';
+  document.getElementById('advies-mode-somm').style.color = mode === 'somm' ? 'var(--wine)' : '';
+  if (mode === 'somm') renderSommelier();
+}
+
+function renderSommelier() {
+  sommStep = 0;
+  sommAnswers = {};
+  renderSommStep();
+}
+
+function sommTypePref(answers) {
+  const prefs = { alledaags: null, aperitief: ['Mousserend', 'Wit'], romantisch: ['Rood', 'Wit', 'Mousserend'], speciaal: null }[answers.gelegenheid];
+  const eatPrefs = { geen: ['Mousserend', 'Wit'], vis: ['Wit', 'Rosé'], vlees: ['Rood'], kaas: ['Rood', 'Wit', 'Mousserend'] }[answers.eten];
+  return { gelegenheid: prefs, eten: eatPrefs };
+}
+
+function sommScore(w, answers) {
+  const b = bdg(w);
+  let score = b.s === 'nu' ? 3 : b.s === 'wt' ? 0 : b.s === 'vb' ? -1 : 1;
+  const prefs = sommTypePref(answers);
+  if (prefs.gelegenheid && prefs.gelegenheid.includes(w.type)) score += 2;
+  if (prefs.eten && prefs.eten.includes(w.type)) score += 2.5;
+  const moodWords = {
+    fris: ['fris', 'luchtig', 'licht', 'sappig', 'elegant'],
+    vol: ['vol', 'krachtig', 'stevig', 'robuust', 'geconcentreerd', 'traditioneel'],
+    verrassend: []
+  }[answers.stemming] || [];
+  const noteWords = tokenize(w.note);
+  moodWords.forEach(mw => { if (containsWord(noteWords, mw)) score += 1.5; });
+  if (answers.stemming === 'verrassend') {
+    const druifLower = (w.druif || '').toLowerCase();
+    if (UNUSUAL_GRAPES.some(g => druifLower.includes(g))) score += 2.5;
+    if (+w.sterren >= 4) score += 1;
+  }
+  if (answers.gelegenheid === 'speciaal') { score += (+w.sterren || 0) * 0.6 + (parseFloat(w.prijs) || 0) / 40; }
+  return score;
+}
+
+function renderSommStep() {
+  const el = document.getElementById('somm-content');
+  if (sommStep >= SOMM_QUESTIONS.length) { renderSommResult(); return; }
+  const q = SOMM_QUESTIONS[sommStep];
+  const dots = SOMM_QUESTIONS.map((_, i) => `<span style="width:6px;height:6px;border-radius:50%;background:${i <= sommStep ? 'var(--wine)' : 'var(--surface-3)'}"></span>`).join('');
+  el.innerHTML = `
+    <div style="display:flex;gap:5px;justify-content:center;margin:14px 0">${dots}</div>
+    <div class="form-card">
+      <div class="form-sec-title" style="color:var(--slate);text-transform:none;letter-spacing:0;font-size:15px;font-family:var(--font-wine);font-weight:700">${q.text}</div>
+      ${q.options.map(o => `<button class="btn-card" style="width:100%;justify-content:flex-start;margin-bottom:8px;padding:12px 14px;font-size:14px" onclick="sommAnswer('${q.key}','${o.value}')">${o.label}</button>`).join('')}
+      ${sommStep > 0 ? `<button class="btn-card" style="margin-top:4px" onclick="sommBack()"><i class="material-symbols-outlined" aria-hidden="true">arrow_back</i> Vorige</button>` : ''}
+    </div>`;
+}
+
+function sommAnswer(key, value) {
+  sommAnswers[key] = value;
+  sommStep++;
+  renderSommStep();
+}
+
+function sommBack() {
+  sommStep = Math.max(0, sommStep - 1);
+  renderSommStep();
+}
+
+const GENERIC_PAIRINGS = {
+  'Rood': 'rood vlees, stoofschotels, oude kaas, wild',
+  'Wit': 'vis, schaaldieren, romige gerechten, salades',
+  'Rosé': 'lichte zomerse gerechten, tapas, barbecue',
+  'Mousserend': 'aperitief, oesters, sushi, feestelijke momenten',
+  'Overig': 'uiteenlopende gerechten — proef en ontdek'
+};
+function wineInfoChips(w) {
+  return buildWineChips(w);
+}
+function wineNoteOrFallback(w) {
+  if (w.note) return renderStructuredNote(w.note);
+  const generic = GENERIC_PAIRINGS[w.type] || GENERIC_PAIRINGS['Overig'];
+  return `<div style="font-size:12px;color:var(--slate-muted);margin-top:6px;line-height:1.5">Geen eigen notitie — over het algemeen lekker bij: ${generic}.</div>`;
+}
+function wineStarsSmall(w) {
+  if (!w.sterren) return '';
+  return `<span style="color:#D97706;font-size:12px;letter-spacing:1px;margin-left:6px">${'★'.repeat(+w.sterren)}</span>`;
+}
+
+function renderSommResult() {
+  const el = document.getElementById('somm-content');
+  const available = wines.filter(w => (+w.aantal || 0) > 0);
+  if (!available.length) {
+    el.innerHTML = '<div class="empty"><i class="material-symbols-outlined" aria-hidden="true">local_bar</i><p>Je kelder is nog leeg — voeg eerst wijnen toe.</p></div>';
+    return;
+  }
+  const scored = available.map(w => ({ w, score: sommScore(w, sommAnswers) })).sort((a, b) => b.score - a.score);
+  const top = scored.slice(0, 2);
+  el.innerHTML = `
+    <div class="form-card">
+      <div class="form-sec-title"><i class="material-symbols-outlined" aria-hidden="true">auto_awesome</i> Mijn aanbeveling</div>
+      ${top.map(({w}, i) => {
+        const b = bdg(w);
+        const chips = wineInfoChips(w);
+        return `<div style="padding:12px 14px;background:var(--surface-2);border-radius:var(--radius-sm);margin-bottom:8px;border-left:2px solid var(--wine-mid)">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
+            <div style="font-family:var(--font-wine);font-size:16px;font-weight:700;color:var(--slate)">${w.naam}${w.jaar ? ' '+w.jaar : ''}${wineStarsSmall(w)}</div>
+            ${i === 0 ? '<span style="font-size:10px;font-weight:600;color:var(--wine);text-transform:uppercase;flex-shrink:0">Beste keuze</span>' : ''}
+          </div>
+          <div style="font-size:12px;color:var(--slate-muted);margin-top:2px">${w.type}${w.jaar ? ' · ' + w.jaar : ''} · ${b.t}</div>
+          ${chips ? `<div class="wc-chips" style="margin-top:6px">${chips}</div>` : ''}
+          ${wineNoteOrFallback(w)}
+        </div>`;
+      }).join('')}
+      <button class="btn-primary" style="margin-top:4px" onclick="renderSommelier()"><i class="material-symbols-outlined" aria-hidden="true">refresh</i> Opnieuw beginnen</button>
+    </div>`;
+}
+
+// ── INZICHTEN ──
+function insightBars(dataObj, colorFn) {
+  const entries = Object.entries(dataObj).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  if (!entries.length) return '<p style="font-size:12px;color:var(--slate-muted)">Geen gegevens beschikbaar.</p>';
+  const max = Math.max(...entries.map(e => e[1]), 1);
+  return entries.map(([label, val], i) => `
+    <div class="bar-row">
+      <div class="bar-label" title="${label}">${label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(val / max * 100, 4)}%;background:${colorFn(label, i)}"></div></div>
+      <div class="bar-value">${val}</div>
+    </div>`).join('');
+}
+
+function renderInsights() {
+  const el = document.getElementById('insights-content');
+  if (!wines.length) {
+    el.innerHTML = '<div class="empty"><i class="material-symbols-outlined" aria-hidden="true">bar_chart</i><p>Nog geen wijnen om inzichten over te tonen.<br>Voeg eerst wat wijnen toe via het + tabblad.</p></div>';
+    return;
+  }
+  const totFl = wines.reduce((s, w) => s + (+w.aantal || 0), 0);
+  const totWijnen = wines.length;
+  const priced = wines.filter(w => w.prijs && !isNaN(parseFloat(w.prijs)) && parseFloat(w.prijs) > 0);
+  const totWaarde = priced.reduce((s, w) => s + parseFloat(w.prijs) * (+w.aantal || 1), 0);
+  const rated = wines.filter(w => +w.sterren > 0);
+  const avgSterren = rated.length ? rated.reduce((s, w) => s + (+w.sterren), 0) / rated.length : 0;
+
+  const typeCounts = {};
+  wines.forEach(w => { const t = w.type || 'Overig'; typeCounts[t] = (typeCounts[t] || 0) + (+w.aantal || 0); });
+  const typeColor = { Rood: 'var(--wine)', Wit: 'var(--gold)', 'Rosé': 'var(--wine-mid)', Mousserend: 'var(--blue)', Overig: 'var(--slate-muted)' };
+
+  const regioCounts = {};
+  wines.forEach(w => { const r = (w.regio || '').trim(); if (r) regioCounts[r] = (regioCounts[r] || 0) + (+w.aantal || 0); });
+
+  const druifCounts = {};
+  wines.forEach(w => { const d = (w.druif || '').trim(); if (d) druifCounts[d] = (druifCounts[d] || 0) + (+w.aantal || 0); });
+
+  const statusCounts = { nu: 0, wt: 0, vb: 0, nvt: 0 };
+  wines.forEach(w => { statusCounts[bdg(w).s] += (+w.aantal || 0); });
+  const statusData = { 'Nu drinken': statusCounts.nu, 'Wachten': statusCounts.wt, 'Over hoogtepunt': statusCounts.vb, 'Geen venster': statusCounts.nvt };
+  const statusColor = { 'Nu drinken': 'var(--green)', 'Wachten': 'var(--amber)', 'Over hoogtepunt': 'var(--red-err)', 'Geen venster': 'var(--slate-muted)' };
+
+  el.innerHTML = `
+    <div class="ins-card">
+      <div class="ins-stats-grid">
+        <div class="ins-stat"><div class="ins-stat-val">${totFl}</div><div class="ins-stat-lbl">Flessen totaal</div></div>
+        <div class="ins-stat"><div class="ins-stat-val">${totWijnen}</div><div class="ins-stat-lbl">Verschillende wijnen</div></div>
+        <div class="ins-stat"><div class="ins-stat-val">${priced.length ? '€' + totWaarde.toFixed(0) : '–'}</div><div class="ins-stat-lbl">Waarde${priced.length && priced.length < wines.length ? ' (bekende prijzen)' : ''}</div></div>
+        <div class="ins-stat"><div class="ins-stat-val">${rated.length ? avgSterren.toFixed(1) + '★' : '–'}</div><div class="ins-stat-lbl">Gem. beoordeling</div></div>
+      </div>
+    </div>
+    <div class="ins-card">
+      <div class="ins-title"><i class="material-symbols-outlined" aria-hidden="true">local_bar</i>Verdeling per type</div>
+      ${insightBars(typeCounts, label => typeColor[label] || 'var(--slate-muted)')}
+    </div>
+    <div class="ins-card">
+      <div class="ins-title"><i class="material-symbols-outlined" aria-hidden="true">schedule</i>Status verdeling</div>
+      ${insightBars(statusData, label => statusColor[label])}
+    </div>
+    ${Object.keys(regioCounts).length ? `<div class="ins-card">
+      <div class="ins-title"><i class="material-symbols-outlined" aria-hidden="true">location_on</i>Top regio's</div>
+      ${insightBars(regioCounts, () => 'var(--wine)')}
+    </div>` : ''}
+    ${Object.keys(druifCounts).length ? `<div class="ins-card">
+      <div class="ins-title"><i class="material-symbols-outlined" aria-hidden="true">eco</i>Top druiven</div>
+      ${insightBars(druifCounts, () => 'var(--gold)')}
+    </div>` : ''}
+  `;
+}
+
+// ── TIMELINE ──
+function renderTimeline() {
+  const el = document.getElementById('tl-content');
+  const wm = wines.filter(w => w.van && w.tm && +w.tm >= +w.van);
+  if (!wm.length) {
+    el.innerHTML = '<div class="empty"><i class="material-symbols-outlined" aria-hidden="true">timeline</i><p>Voeg wijnen met een drinkvenster toe om de tijdlijn te zien.</p></div>';
+    return;
+  }
+  const minY = Math.min(...wm.map(w => +w.van)) - 1;
+  const maxY = Math.max(...wm.map(w => +w.tm)) + 1;
+  const span = maxY - minY;
+  const sorted = [...wm].sort((a, b) => (+a.tm - +b.tm) || (+a.van - +b.van));
+  const pct = y => Math.round((y - minY) / span * 100);
+  const step = Math.ceil(span / 5);
+  const ticks = [];
+  for (let y = minY; y <= maxY; y += step) ticks.push(y);
+  if (ticks[ticks.length - 1] < maxY) ticks.push(maxY);
+  const nowP = Math.min(Math.max(pct(YEAR), 0), 100);
+  let h = '<div class="tl-wrap"><div class="tl-inner">';
+  h += `<div class="tl-axrow">${ticks.map(y => `<span class="tl-tick">${y}</span>`).join('')}</div>`;
+  sorted.forEach(w => {
+    const b = bdg(w);
+    const col = b.s === 'nu' ? '#15803D' : b.s === 'wt' ? '#B45309' : '#991B1B';
+    const l = pct(+w.van), wd = Math.max(pct(+w.tm) - l, 2);
+    const isOpen = tlExpandedIds.has(w.id);
+    h += `<div class="tl-row">
+      <div class="tl-lbl${isOpen ? ' tl-lbl-open' : ''}" title="${w.naam}" onclick="toggleTlLabel(${w.id})">${w.naam}</div>
+      <div class="tl-track">
+        <div class="tl-seg" style="left:${l}%;width:${wd}%;background:${col}"></div>
+        <div class="tl-now" style="left:${nowP}%"></div>
+      </div>
+    </div>`;
+  });
+  h += `<div class="tl-legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#15803D"></div>Nu drinken</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#B45309"></div>Wachten</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#991B1B"></div>Over hoogtepunt</div>
+    <div class="leg-item"><div style="width:2px;height:12px;background:var(--wine);border-radius:1px"></div>Huidig jaar (${YEAR})</div>
+  </div></div></div>`;
+  el.innerHTML = h;
+}
+
+const tlExpandedIds = new Set();
+function toggleTlLabel(id) {
+  if (tlExpandedIds.has(id)) tlExpandedIds.delete(id);
+  else tlExpandedIds.add(id);
+  renderTimeline();
+}
+
+// ── LOG ──
+function renderLog() {
+  const el = document.getElementById('log-list');
+  const cnt = document.getElementById('log-count');
+  cnt.textContent = dlog.length ? dlog.length + ' proefnotities' : '';
+  if (!dlog.length) {
+    el.innerHTML = '<div class="empty"><i class="material-symbols-outlined" aria-hidden="true">menu_book</i><p>Nog geen gedronken flessen gelogd.<br>Tik op "Gedronken" bij een wijn om te beginnen.</p></div>';
+    return;
+  }
+  const s = [...dlog].sort((a, b) => b.ts - a.ts);
+  el.innerHTML = s.map(e => {
+    const d = new Date(e.ts).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+    const chips = [
+      e.type ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">wine_bar</i>${e.type}</span>` : '',
+      e.jaar ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">calendar_month</i>${e.jaar}</span>` : '',
+      e.wie ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">group</i>${e.wie}</span>` : '',
+      e.gel ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">celebration</i>${e.gel}</span>` : ''
+    ].filter(Boolean).join('');
+    return `<div class="log-item">
+      <div class="log-date">
+        <i class="material-symbols-outlined" style="font-size:13px" aria-hidden="true">calendar_month</i>${d}
+        <button class="btn-card btn-del" style="margin-left:auto;padding:4px 9px" onclick="deleteLogEntry(${e.id})" aria-label="Notitie verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
+      </div>
+      <div class="log-name">${e.naam}</div>
+      ${chips ? `<div class="wc-chips" style="margin-top:6px">${chips}</div>` : ''}
+      ${e.sterren ? `<div class="log-stars">${'★'.repeat(e.sterren)}<span style="color:var(--surface-3)">${'★'.repeat(5 - e.sterren)}</span></div>` : ''}
+      ${e.note ? `<div class="log-note">${e.note}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function deleteLogEntry(id) {
+  const ok = await showConfirm('Deze proefnotitie verwijderen?');
+  if (!ok) return;
+  dlog = dlog.filter(e => e.id !== id);
+  pl();
+  renderLog();
+  toast('Notitie verwijderd.');
+}
+
+// ── ALERTS ──
+function renderAlerts() {
+  const bj = [], bv = [], vb = [];
+  wines.forEach(w => {
+    if (!(+w.aantal > 0)) return;
+    const b = bdg(w);
+    if (b.s === 'wt' && b.bj) bj.push(w);
+    if (b.s === 'nu' && b.bv) bv.push(w);
+    if (b.s === 'vb') vb.push(w);
+  });
+  const tot = bj.length + bv.length + vb.length;
+  const nd = document.getElementById('ndot2');
+  if (nd) nd.classList.toggle('show', tot > 0);
+  const el = document.getElementById('mel-content');
+  if (!tot) {
+    el.innerHTML = '<div class="empty"><i class="material-symbols-outlined" aria-hidden="true">notifications_off</i><p>Geen meldingen op dit moment. Alle wijnen zijn op schema.</p></div>';
+    return;
+  }
+  let h = '';
+  if (vb.length) h += `<div class="alert-card danger"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">warning</i> Over hoogtepunt (${vb.length} wijn${vb.length > 1 ? 'en' : ''})</div>${vb.map(w => `<div class="alert-row"><span>${w.naam}${w.jaar ? ' ' + w.jaar : ''}</span><span>${+w.aantal || 1} fl.</span></div>`).join('')}</div>`;
+  if (bv.length) h += `<div class="alert-card warn"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">schedule</i> Bijna over hoogtepunt (binnen ${WARN} jaar)</div>${bv.map(w => `<div class="alert-row"><span>${w.naam}${w.jaar ? ' ' + w.jaar : ''}</span><span>t/m ${w.tm}</span></div>`).join('')}</div>`;
+  if (bj.length) h += `<div class="alert-card warn"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">play_arrow</i> Bijna op dronk (binnen ${WARN} jaar)</div>${bj.map(w => `<div class="alert-row"><span>${w.naam}${w.jaar ? ' ' + w.jaar : ''}</span><span>vanaf ${w.van}</span></div>`).join('')}</div>`;
+  el.innerHTML = h;
+}
+
+// ── NAVIGATION ──
+const TABS = ['kelder', 'tijdlijn', 'log', 'meldingen', 'toevoegen', 'advies', 'export', 'insights', 'wishlist'];
+function sw(t) {
+  TABS.forEach(n => {
+    document.getElementById('sec-' + n).classList.toggle('active', n === t);
+    const bid = 'bn-' + (n === 'meldingen' ? 'mel' : n);
+    const bn = document.getElementById(bid);
+    if (bn) bn.classList.toggle('active', n === t);
+  });
+  const heroEl = document.querySelector('.hero');
+  if (heroEl) heroEl.classList.toggle('compact', t !== 'kelder' && t !== 'tijdlijn');
+  if (t !== 'kelder') { const az = document.getElementById('az-bar'); if (az) az.style.display = 'none'; }
+  window.scrollTo(0, 0);
+  if (t === 'tijdlijn') renderTimeline();
+  if (t === 'log') renderLog();
+  if (t === 'meldingen') renderAlerts();
+  if (t === 'insights') renderInsights();
+  if (t === 'wishlist') renderWishlist();
+  if (t === 'kelder') { renderList(); updateStats(); }
+}
+
+// ── DRINK ONE ──
+function drinkOne(id) {
+  const w = wines.find(x => x.id === id); if (!w) return;
+  if ((+w.aantal || 0) > 1) {
+    logTgt = id;
+    document.getElementById('lm-sub').textContent = '"' + w.naam + '" — log deze fles in je dagboek (optioneel).';
+    ['lm-wie', 'lm-gel', 'lm-note'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('log-modal').classList.add('open');
+  } else {
+    drinkTgt = id;
+    document.getElementById('dm-sub').textContent = '"' + w.naam + '" is de laatste fles. Bewaren als herinnering of verwijderen?';
+    ['dm-wie', 'dm-gel', 'dm-note'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('drink-modal').classList.add('open');
+  }
+}
+
+function logConfirm() {
+  const w = wines.find(x => x.id === logTgt); if (!w) return;
+  addLog(w, document.getElementById('lm-wie').value, document.getElementById('lm-gel').value, document.getElementById('lm-note').value);
+  w.aantal = Math.max(0, (+w.aantal || 1) - 1);
+  pw(); pl(); closeLM(); renderList(); updateStats(); renderAlerts();
+  toast('Genoten! Nog ' + w.aantal + ' fl. over.');
+}
+function closeLM() { document.getElementById('log-modal').classList.remove('open'); }
+
+function drinkConfirm(a) {
+  document.getElementById('drink-modal').classList.remove('open');
+  if (a === 'annuleer') return;
+  const w = wines.find(x => x.id === drinkTgt); if (!w) return;
+  addLog(w, document.getElementById('dm-wie').value, document.getElementById('dm-gel').value, document.getElementById('dm-note').value);
+  if (a === 'verwijder') wines = wines.filter(x => x.id !== drinkTgt);
+  else w.aantal = 0;
+  pw(); pl(); renderList(); updateStats(); renderAlerts();
+  toast(a === 'verwijder' ? 'Wijn verwijderd.' : 'Bewaard als herinnering (0 fl.).');
+}
+
+function addLog(w, wie, gel, note) {
+  dlog.push({ id: Date.now(), wid: w.id, naam: w.naam, type: w.type, jaar: w.jaar, prod: w.prod, sterren: w.sterren, wie: wie.trim(), gel: gel.trim(), note: note.trim(), ts: Date.now() });
+}
+
+// ── WIJN BIJ HET ETEN (regelgebaseerd, geen API nodig) ──
+const NL_STOPWORDS = new Set(['de','het','een','en','of','met','van','voor','bij','in','op','te','ik','ga','we','gaan','vanavond','vandaag','morgen','eten','wat','dit','die','dat','er','is','zijn','maak','maken','wil','graag','wij','ons','onze']);
+const TYPE_HINTS = {
+  'Wit': [
+    // vis & schaaldieren
+    'vis','zeevrucht','garnaal','oester','sushi','schaaldier','ceviche','witvis','zalm','kabeljauw','tong','forel',
+    'snoekbaars','mossel','inktvis','krab','kreeft','sashimi',
+    // gevogelte & licht vlees
+    'kip','gevogelte','kalkoen',
+    // sauzen & bereiding die om fris/romig wit vragen
+    'room','romig','roomsaus','botersaus','citroensaus','beurre','hollandaise',
+    'gestoomd','gepocheerd',
+    // kruiden/smaken die bij fris wit passen
+    'citroen','limoen','dille','bieslook','peterselie','venkel',
+    // overig
+    'geit','geitenkaas','salade','asperge','kaas'
+  ],
+  'Rood': [
+    // vlees & bereiding
+    'vlees','rund','lam','wild','stoof','stoofpot','gebraden','bbq','barbecue','biefstuk','worst','gehakt',
+    'eend','ossenhaas','entrecote','ribeye','spek','gerookt','gegrild',
+    // sauzen & smaken die bij stevig rood passen
+    'jus','pepersaus','tomatensaus','ragu','bolognese',
+    'truffel','paddenstoel','champignon','risotto','pasta','tomaat',
+    'kruidnagel','rozemarijn','tijm','laurier','peper',
+    // gelegenheid
+    'romantisch','date','diner',
+    // kaas
+    'kaas','belegen'
+  ],
+  'Rosé': [
+    'salade','zomers','barbecue','tapas','lichte','vis','geit','geitenkaas',
+    'couscous','falafel','hummus','pittig','kruidig'
+  ],
+  'Mousserend': [
+    'aperitief','borrel','feest','oester','sushi','friet','chips','verjaardag','jubileum','vieren','viering','proost',
+    'gefrituurd','frituur','zilte','zout','gember','zoetzuur','pittig','curry','wok'
+  ]
+};
+const SPECIAL_WORDS = new Set(['verjaardag','jubileum','speciale','vieren','viering']);
+const UNUSUAL_GRAPES = ['nascetta','lagrein','mondeuse','altesse','roussette','sagrantino','vernaccia','garnatxa roja','primitivo','nebbiolo','pinot blanc','spätburgunder','alvarelhão','caiño'];
+function tokenize(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w => w.length > 2 && !NL_STOPWORDS.has(w));
+}
+// Nederlandse samenstellingen (bijv. "wildgerechten", "tomatensaus") matchen niet op exacte
+// woordgelijkheid — check daarom of het ene woord in het andere voorkomt, in beide richtingen.
+function containsWord(noteWords, word) {
+  return noteWords.some(nw => nw.length > 3 && (nw.includes(word) || word.includes(nw)));
+}
+function scoreWine(foodWords, foodSet, w, opts) {
+  opts = opts || {};
+  const noteWords = tokenize(w.note);
+  let overlap = 0;
+  foodWords.forEach(word => { if (word.length > 3 && containsWord(noteWords, word)) overlap++; });
+  const hints = TYPE_HINTS[w.type] || [];
+  let hintScore = 0;
+  hints.forEach(h => { if (foodWords.some(word => word.includes(h) || h.includes(word))) hintScore++; });
+  const b = bdg(w);
+  const statusBonus = b.s === 'nu' ? 2 : b.s === 'wt' ? 0 : b.s === 'vb' ? -1 : 0;
+  let occasionBonus = 0;
+  if (opts.gezelschap === 'Zakelijk') occasionBonus += (+w.sterren || 0) * 0.6 + (parseFloat(w.prijs) || 0) / 40;
+  if (opts.special) occasionBonus += (+w.sterren || 0) * 0.5;
+  // contentScore = puur inhoudelijke relevantie (matcht het echt met wat je zocht?).
+  // Status/gezelschap-bonussen tellen alleen mee als tie-breaker, en mogen nooit op
+  // zichzelf een wijn tot "match" bombarderen als er geen inhoudelijke reden voor is.
+  const contentScore = overlap * 3 + hintScore * 1.5;
+  return { total: contentScore + statusBonus + occasionBonus, contentScore };
+}
+function getWijnAdvies() {
+  const food = (document.getElementById('food-input').value || '').trim();
+  const gezelschap = document.getElementById('food-gezelschap').value;
+  const gelegenheid = (document.getElementById('food-gelegenheid').value || '').trim();
+  const box = document.getElementById('food-result');
+  if (!food && !gelegenheid) { toast('Typ iets in over het eten of de gelegenheid.'); return; }
+  const available = wines.filter(w => (+w.aantal || 0) > 0);
+  if (!available.length) {
+    box.style.display = 'block';
+    box.innerHTML = '<em style="color:var(--slate-muted);font-size:13px">Je kelder is nog leeg — voeg eerst wijnen toe.</em>';
+    return;
+  }
+  const combinedText = [food, gelegenheid, gezelschap].filter(Boolean).join(' ');
+  const foodWords = tokenize(combinedText);
+  const foodSet = new Set(foodWords);
+  const special = foodWords.some(w => SPECIAL_WORDS.has(w));
+  const opts = { gezelschap, special };
+  const scored = available.map(w => ({ w, ...scoreWine(foodWords, foodSet, w, opts) }))
+    .sort((a, b) => b.total - a.total);
+  const top = scored.filter(s => s.contentScore > 0).slice(0, 3);
+  const labels = ['Beste match', 'Ook goed', 'Alternatief'];
+  const summary = [food, gezelschap, gelegenheid].filter(Boolean).join(' · ');
+  box.style.display = 'block';
+  if (!top.length) {
+    box.innerHTML = `<div style="font-size:12px;font-weight:500;color:var(--wine);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Aanbevolen bij "${summary.length > 60 ? summary.slice(0,60)+'…' : summary}"</div>
+      <div style="font-size:13px;color:var(--slate-mid);padding:10px 12px;background:var(--surface-2);border-radius:var(--radius-sm)">Geen wijn in je kelder heeft een aantekening die hier duidelijk bij past — ik geef liever geen willekeurige gok dan een gekunstelde match. Probeer het eventueel met een ander woord (bijv. de hoofdingrediënt, saus, of bereidingswijze), of vul de "Lekker bij"-notitie van een wijn aan als je weet dat 'ie hier goed bij past.</div>
+      <button class="btn-card" style="width:100%;justify-content:center;margin-top:8px" onclick="resetWijnAdvies()"><i class="material-symbols-outlined" aria-hidden="true">refresh</i> Opnieuw beginnen</button>`;
+    return;
+  }
+  box.innerHTML = `<div style="font-size:12px;font-weight:500;color:var(--wine);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Aanbevolen bij "${summary.length > 60 ? summary.slice(0,60)+'…' : summary}"</div>` +
+    top.map(({w}, i) => {
+      const b = bdg(w);
+      const chips = wineInfoChips(w);
+      return `<div style="padding:10px 12px;background:var(--surface-2);border-radius:var(--radius-sm);margin-bottom:6px;border-left:2px solid var(--wine-mid)">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+          <div style="font-family:var(--font-wine);font-size:15px;font-weight:700;color:var(--slate);letter-spacing:-.01em">${w.naam}${w.jaar ? ' '+w.jaar : ''}${wineStarsSmall(w)} <span style="font-size:12px;font-weight:400;color:var(--slate-muted)">· ${b.t}</span></div>
+          ${labels[i] ? `<span style="font-size:10px;font-weight:600;color:var(--wine);text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">${labels[i]}</span>` : ''}
+        </div>
+        ${chips ? `<div class="wc-chips" style="margin-top:6px">${chips}</div>` : ''}
+        ${wineNoteOrFallback(w)}
+      </div>`;
+    }).join('') +
+    `<button class="btn-card" style="width:100%;justify-content:center;margin-top:8px" onclick="resetWijnAdvies()"><i class="material-symbols-outlined" aria-hidden="true">refresh</i> Opnieuw beginnen</button>`;
+}
+
+function resetWijnAdvies() {
+  document.getElementById('food-input').value = '';
+  document.getElementById('food-gezelschap').value = '';
+  document.getElementById('food-gelegenheid').value = '';
+  const box = document.getElementById('food-result');
+  box.style.display = 'none';
+  box.innerHTML = '';
+  document.getElementById('food-input').focus();
+}
+
+// ── FORM ──
+function setStar(n) {
+  curStar = n;
+  document.querySelectorAll('#star-inp .star').forEach((s, i) => s.classList.toggle('lit', i < n));
+}
+
+function clearForm() {
+  ['f-naam','f-regio','f-druif','f-prod','f-jaar','f-aantal','f-prijs','f-loc','f-van','f-tm','f-note','f-herkomst']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = id === 'f-aantal' ? '1' : ''; });
+  document.getElementById('f-type').value = 'Rood';
+  setStar(0); curStar = 0; editId = null; pendingWishlistBuyId = null;
+}
+
+async function saveWine() {
+  const naam = (document.getElementById('f-naam').value || '').trim();
+  if (!naam) { toast('Vul minimaal een naam in.'); return; }
+  const w = {
+    id: editId || Date.now(), naam,
+    type: document.getElementById('f-type').value,
+    regio: document.getElementById('f-regio').value.trim(),
+    druif: document.getElementById('f-druif').value.trim(),
+    prod: document.getElementById('f-prod').value.trim(),
+    jaar: document.getElementById('f-jaar').value,
+    aantal: parseInt(document.getElementById('f-aantal').value) || 1,
+    prijs: document.getElementById('f-prijs').value,
+    loc: document.getElementById('f-loc').value.trim(),
+    van: document.getElementById('f-van').value,
+    tm: document.getElementById('f-tm').value,
+    sterren: curStar,
+    note: document.getElementById('f-note').value.trim(),
+    herkomst: document.getElementById('f-herkomst').value.trim()
+  };
+  if (!editId) {
+    // Check op mogelijke dubbele invoer: zelfde naam (en, als beide een jaartal hebben, ook zelfde jaartal).
+    const naamLower = naam.toLowerCase();
+    const dup = wines.find(x =>
+      x.naam.trim().toLowerCase() === naamLower &&
+      (!w.jaar || !x.jaar || x.jaar === w.jaar)
+    );
+    if (dup) {
+      const ok = await showConfirm(
+        `Deze wijn lijkt al in je kelder te staan: "${dup.naam}${dup.jaar ? ' ' + dup.jaar : ''}" (${dup.aantal || 1} fl.). Toch als nieuwe, aparte regel toevoegen?`
+      );
+      if (!ok) return;
+    }
+  }
+  if (editId) { wines = wines.map(x => x.id === editId ? w : x); toast('Wijn bijgewerkt!'); }
+  else {
+    wines.push(w);
+    if (pendingWishlistBuyId) {
+      wishlist = wishlist.filter(x => x.id !== pendingWishlistBuyId);
+      pendingWishlistBuyId = null;
+      toast('"' + naam + '" toegevoegd aan je kelder en van je verlanglijst gehaald!');
+    } else {
+      toast('Wijn toegevoegd!');
+    }
+  }
+  pw(); clearForm(); sw('kelder');
+}
+
+async function deleteWine(id) {
+  const ok = await showConfirm('Wijn verwijderen?');
+  if (!ok) return;
+  wines = wines.filter(w => w.id !== id);
+  pw(); renderList(); updateStats(); renderAlerts();
+}
+
+function editWine(id) {
+  const w = wines.find(x => x.id === id); if (!w) return;
+  editId = id; pendingWishlistBuyId = null;
+  document.getElementById('f-naam').value = w.naam;
+  document.getElementById('f-type').value = w.type;
+  document.getElementById('f-regio').value = w.regio || '';
+  document.getElementById('f-druif').value = w.druif || '';
+  document.getElementById('f-prod').value = w.prod || '';
+  document.getElementById('f-jaar').value = w.jaar || '';
+  document.getElementById('f-aantal').value = w.aantal || 1;
+  document.getElementById('f-prijs').value = w.prijs || '';
+  document.getElementById('f-loc').value = w.loc || '';
+  document.getElementById('f-van').value = w.van || '';
+  document.getElementById('f-tm').value = w.tm || '';
+  document.getElementById('f-note').value = w.note || '';
+  document.getElementById('f-herkomst').value = w.herkomst || '';
+  setStar(w.sterren || 0); curStar = w.sterren || 0;
+  sw('toevoegen');
+  window.scrollTo(0, 0);
+}
+
+// ── TOAST ──
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── CUSTOM CONFIRM (native confirm() is blocked in this sandboxed environment) ──
+let confirmResolver = null;
+function showConfirm(msg) {
+  return new Promise(resolve => {
+    confirmResolver = resolve;
+    document.getElementById('confirm-msg').textContent = msg;
+    document.getElementById('confirm-modal').classList.add('open');
+  });
+}
+function confirmAnswer(v) {
+  document.getElementById('confirm-modal').classList.remove('open');
+  if (confirmResolver) { confirmResolver(v); confirmResolver = null; }
+}
+
+// ── EXPORT ──
+function getH() { return ['Naam','Type','Regio','Druif','Producent','Oogstjaar','Flessen','Prijs (€)','Locatie','Herkomst','Drinken vanaf','Drinken t/m','Status','Sterren','Notities']; }
+function wR(w) { return [w.naam,w.type,w.regio||'',w.druif||'',w.prod||'',w.jaar||'',w.aantal||1,w.prijs||'',w.loc||'',w.herkomst||'',w.van||'',w.tm||'',bdg(w).t,w.sterren||'',w.note||'']; }
+
+function exportCSV() {
+  if (!wines.length) { toast('Geen wijnen om te exporteren.'); return; }
+  const rows = [getH(), ...wines.map(wR)];
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  dl('wijnkelder.csv', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+  toast('CSV gedownload!');
+}
+
+function exportExcel() {
+  if (!wines.length) { toast('Geen wijnen om te exporteren.'); return; }
+  const ws = XLSX.utils.aoa_to_sheet([getH(), ...wines.map(wR)]);
+  ws['!cols'] = [{wch:22},{wch:12},{wch:14},{wch:18},{wch:10},{wch:8},{wch:10},{wch:16},{wch:16},{wch:12},{wch:12},{wch:16},{wch:8},{wch:32}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Wijnkelder');
+  XLSX.writeFile(wb, 'wijnkelder.xlsx');
+  toast('Excel gedownload!');
+}
+
+function exportPDF() {
+  if (!wines.length) { toast('Geen wijnen om te exporteren.'); return; }
+  const rows = wines.map(w => {
+    const b = bdg(w);
+    return `<tr><td>${w.naam}</td><td>${w.type}</td><td>${w.prod||''}</td><td>${w.regio||''}</td><td>${w.druif||''}</td><td>${w.jaar||''}</td><td>${w.aantal||1}</td><td>${w.prijs ? '€'+parseFloat(w.prijs).toFixed(2) : ''}</td><td>${w.loc||''}</td><td>${w.herkomst||''}</td><td>${w.van||''}${w.tm ? '–'+w.tm : ''}</td><td>${b.t}</td><td>${'★'.repeat(w.sterren||0)}</td></tr>`;
+  }).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Wijnkelder</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter&display=swap');
+body{font-family:'Inter',sans-serif;font-size:12px;padding:24px;color:#1C1917;background:#fff}
+h1{font-family:'Fraunces',serif;font-size:24px;color:#9F1240;margin-bottom:4px}
+.sub{font-size:12px;color:#78716C;margin-bottom:20px}
+table{width:100%;border-collapse:collapse}
+th{background:#FCE9EF;text-align:left;padding:6px 8px;font-size:11px;color:#9F1240;border-bottom:1px solid #E8C4CC;text-transform:uppercase;letter-spacing:.04em}
+td{padding:5px 8px;border-bottom:0.5px solid #F4F1ED;vertical-align:top}
+tr:hover td{background:#FAFAF8}
+@media print{ body{padding:0} }
+</style></head><body>
+<h1>Wijnkelder</h1>
+<div class="sub">Geëxporteerd op ${new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})} &nbsp;·&nbsp; ${wines.length} wijnen &nbsp;·&nbsp; ${wines.reduce((s,w)=>s+(+w.aantal||1),0)} flessen</div>
+<table><tr><th>Naam</th><th>Type</th><th>Producent</th><th>Regio</th><th>Druif</th><th>Jaar</th><th>Fl.</th><th>Prijs</th><th>Locatie</th><th>Herkomst</th><th>Drinkvenster</th><th>Status</th><th>★</th></tr>${rows}</table>
+</body></html>`;
+  dl('wijnkelder-overzicht.html', 'data:text/html;charset=utf-8,' + encodeURIComponent(html));
+  toast('Bestand gedownload — open het in je browser en druk af als PDF (Ctrl/Cmd+P).');
+}
+
+function exportJSON() {
+  if (!wines.length) { toast('Geen wijnen om te exporteren.'); return; }
+  dl('wijnkelder-backup.json', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({wines, log: dlog, wishlist}, null, 2)));
+  toast('Back-up opgeslagen!');
+}
+
+async function copyJSON() {
+  if (!wines.length) { toast('Geen wijnen om te exporteren.'); return; }
+  const text = JSON.stringify({wines, log: dlog, wishlist}, null, 2);
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Back-up gekopieerd! Plak het nu in de chat.');
+  } catch (e) {
+    // Fallback for browsers/sandboxes that block the async clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try {
+      document.execCommand('copy');
+      toast('Back-up gekopieerd! Plak het nu in de chat.');
+    } catch {
+      toast('Kopiëren lukte niet. Probeer de downloadknop hierboven.');
+    }
+    document.body.removeChild(ta);
+  }
+}
+
+// ── KELDER DELEN (ALLEEN-LEZEN) ──
+function exportReadOnlyHTML() {
+  if (!wines.length) { toast('Geen wijnen om te delen.'); return; }
+  const rows = [...wines].sort((a, b) => (a.naam || '').localeCompare(b.naam || '', 'nl', { sensitivity: 'base' })).map(w => {
+    const b = bdg(w);
+    const statusColor = b.s === 'nu' ? '#15803D' : b.s === 'wt' ? '#B45309' : b.s === 'vb' ? '#DC2626' : '#78716C';
+    const chips = [w.regio, w.druif, w.prod].filter(Boolean).join(' · ');
+    return `<div style="background:#fff;border:0.5px solid #E7E0DA;border-radius:14px;padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
+        <div style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:#1C1917">${w.naam}${w.jaar ? ' ' + w.jaar : ''}</div>
+        <span style="font-size:11px;font-weight:600;color:${statusColor};flex-shrink:0">${b.t}</span>
+      </div>
+      <div style="font-size:12px;color:#78716C;margin-top:2px">${w.type}${chips ? ' · ' + chips : ''}</div>
+      ${w.note ? `<div style="font-size:12px;color:#57534E;margin-top:8px;font-style:italic;line-height:1.5">${w.note}</div>` : ''}
+    </div>`;
+  }).join('');
+  const totFl = wines.reduce((s, w) => s + (+w.aantal || 1), 0);
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wijnkelder — alleen-lezen</title>
+<style>
+body{font-family:-apple-system,'DM Sans',sans-serif;max-width:480px;margin:0 auto;padding:20px;background:#FAFAF8;color:#1C1917}
+h1{font-family:Georgia,serif;font-size:24px;color:#9F1240;margin-bottom:2px}
+.sub{font-size:12px;color:#78716C;margin-bottom:18px}
+.badge{display:inline-block;background:#FCE9EF;color:#9F1240;font-size:11px;padding:4px 10px;border-radius:20px;margin-bottom:16px}
+</style></head><body>
+<h1>Wijnkelder</h1>
+<div class="sub">Alleen-lezen momentopname · ${new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})}</div>
+<div class="badge">${wines.length} wijnen · ${totFl} flessen</div>
+${rows}
+</body></html>`;
+  dl('wijnkelder-alleen-lezen.html', 'data:text/html;charset=utf-8,' + encodeURIComponent(html));
+  toast('Alleen-lezen pagina gedownload — deel dit bestand met wie je wilt.');
+}
+
+function generateCellarQR() {
+  if (!wines.length) { toast('Geen wijnen om te delen.'); return; }
+  try {
+    const TYPE_EMOJI = { 'Rood': '🍷', 'Wit': '🥂', 'Rosé': '🌸', 'Mousserend': '🍾', 'Overig': '🍶' };
+    const grouped = {};
+    wines.forEach(w => {
+      const t = w.type || 'Overig';
+      (grouped[t] = grouped[t] || []).push(w);
+    });
+    const typeOrder = Object.keys(grouped).sort((a, b) => grouped[b].length - grouped[a].length);
+    const totFl = wines.reduce((s, w) => s + (+w.aantal || 1), 0);
+    let body = `🍷 Mijn Wijnkelder\n${new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })} · ${wines.length} wijnen · ${totFl} flessen\n`;
+    typeOrder.forEach(type => {
+      const emoji = TYPE_EMOJI[type] || '🍶';
+      body += `\n${emoji} ${type} (${grouped[type].length})\n`;
+      [...grouped[type]].sort((a, c) => (a.naam || '').localeCompare(c.naam || '', 'nl', { sensitivity: 'base' })).forEach(w => {
+        const b = bdg(w);
+        body += `• ${w.naam}${w.jaar ? ' ' + w.jaar : ''} — ${b.t}\n`;
+      });
+    });
+    const payload = body.trim();
+    const holder = document.getElementById('qr-svg-holder');
+    const resultBox = document.getElementById('qr-result');
+    let built = null;
+    for (let type = 1; type <= 40 && !built; type++) {
+      try {
+        const qr = qrcode(type, 'L');
+        qr.addData(payload);
+        qr.make();
+        built = qr;
+      } catch (e) { /* te groot voor dit type, probeer de volgende */ }
+    }
+    if (!built) {
+      resultBox.style.display = 'block';
+      holder.innerHTML = '';
+      toast('Je kelder heeft te veel wijnen voor één QR-code — gebruik in plaats daarvan de alleen-lezen pagina of JSON-back-up.');
+      return;
+    }
+    document.getElementById('qr-card-sub').textContent = `${wines.length} wijnen · ${totFl} flessen · ${new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})}`;
+    const typeCounts = {};
+    wines.forEach(w => { const t = w.type || 'Overig'; typeCounts[t] = (typeCounts[t] || 0) + (+w.aantal || 0); });
+    document.getElementById('qr-card-types').innerHTML = Object.entries(typeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([t, n]) => `<span style="background:rgba(255,255,255,0.12);color:#fff;font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px">${n} ${t}</span>`)
+      .join('');
+    holder.innerHTML = built.createSvgTag(4, 12);
+    resultBox.style.display = 'block';
+    resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    toast('QR-code gegenereerd!');
+  } catch (err) {
+    let detail = 'onbekende fout';
+    try { detail = (err && (err.message || err.name)) || String(err); } catch {}
+    toast('QR-code maken is niet gelukt: ' + detail);
+  }
+}
+
+function handleImport(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = async ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (Array.isArray(d.update_wines)) {
+        // Fill in / update fields on existing wines, matched by id (falls back to naam+jaar match)
+        let updated = 0;
+        d.update_wines.forEach(patch => {
+          let target = null;
+          if (patch.id != null) target = wines.find(w => w.id === patch.id);
+          if (!target && patch.naam) target = wines.find(w => w.naam === patch.naam && (!patch.jaar || String(w.jaar) === String(patch.jaar)));
+          if (!target) return;
+          ['van','tm','note','regio','druif','prod','jaar','type','loc','prijs','sterren','herkomst'].forEach(f => {
+            if (patch[f] !== undefined && patch[f] !== '') target[f] = patch[f];
+          });
+          updated++;
+        });
+        pw(); renderList(); updateStats(); renderAlerts(); renderTimeline();
+        sw('kelder');
+        toast(updated ? updated + ' wijn(en) bijgewerkt!' : 'Geen overeenkomende wijnen gevonden.');
+        return;
+      }
+      if (Array.isArray(d.add_wines)) {
+        // Add one or more wines to the existing cellar without touching the rest
+        const added = d.add_wines.map((w, i) => ({
+          id: Date.now() + i,
+          naam: w.naam || 'Onbekende wijn',
+          type: w.type || 'Rood',
+          regio: w.regio || '',
+          druif: w.druif || '',
+          prod: w.prod || '',
+          jaar: w.jaar || '',
+          aantal: parseInt(w.aantal) || 1,
+          prijs: w.prijs || '',
+          loc: w.loc || '',
+          van: w.van || '',
+          tm: w.tm || '',
+          sterren: w.sterren || 0,
+          note: w.note || '',
+          herkomst: w.herkomst || ''
+        }));
+        wines = wines.concat(added);
+        pw(); renderList(); updateStats(); renderAlerts(); renderTimeline();
+        sw('kelder');
+        toast(added.length === 1 ? '"' + added[0].naam + '" toegevoegd!' : added.length + ' wijnen toegevoegd!');
+        return;
+      }
+      if (d.wines) {
+        const ok = await showConfirm('Dit vervangt je hele kelder en dagboek door deze back-up. Doorgaan?');
+        if (!ok) return;
+        wines = d.wines; dlog = d.log || []; wishlist = d.wishlist || [];
+      }
+      else if (Array.isArray(d)) {
+        const ok = await showConfirm('Dit vervangt je hele kelder door deze lijst. Doorgaan?');
+        if (!ok) return;
+        wines = d; dlog = [];
+      }
+      else { toast('Ongeldig bestand.'); return; }
+      pw(); pl(); renderList(); updateStats(); renderAlerts(); renderLog(); renderTimeline();
+      sw('kelder');
+      toast('Back-up geladen: ' + wines.length + ' wijnen.');
+    } catch { toast('Kon bestand niet lezen.'); }
+  };
+  r.readAsText(f);
+}
+
+function dl(name, url) {
+  // Convert data: URIs to Blob object URLs — more reliable across sandboxed browser contexts
+  try {
+    if (url.startsWith('data:')) {
+      const [meta, data] = url.split(',');
+      const mime = meta.split(':')[1].split(';')[0];
+      const decoded = decodeURIComponent(data);
+      const blob = new Blob([decoded], { type: mime });
+      url = URL.createObjectURL(blob);
+    }
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 4000);
+  } catch (e) {
+    toast('Download lukte niet — probeer de kopieerknop.');
+  }
+}
+
+// ── INIT ──
+load();
+initAzBar();
+</script>
+</body>
+</html>
