@@ -40,18 +40,19 @@ export default async function DeelPagina({ params }: { params: Promise<{ token: 
   const as = buildAxis(asWijnen, jaar);
 
   return (
-    <main className="shell" style={{ maxWidth: 880 }}>
-      <div className="masthead">
-        <h1 className="wordmark">
-          Wijn<em>kelder</em>
-        </h1>
-        <span className="label">Gedeeld · alleen lezen</span>
-      </div>
-      <div className="masthead-sub">
-        <span className="mono" style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-          {wijnen.length} wijnen · {flessen} flessen
-        </span>
-      </div>
+    <>
+      <header className="kop kop-slank">
+        <div className="kop-binnen">
+          <div className="kop-rij">
+            <span className="kop-merk">Wijn<em>kelder</em></span>
+            <span className="kop-datum mono" style={{ display: 'block' }}>
+              {wijnen.length} wijnen · {flessen} flessen
+            </span>
+          </div>
+          <p className="kop-sub">Gedeeld — alleen lezen</p>
+        </div>
+      </header>
+      <main className="shell" style={{ maxWidth: 880 }}>
 
       <div className="ledger">
         <div className="ledger-head">
@@ -121,5 +122,6 @@ export default async function DeelPagina({ params }: { params: Promise<{ token: 
         de eigenaar kan deze link op elk moment intrekken.
       </p>
     </main>
+    </>
   );
 }

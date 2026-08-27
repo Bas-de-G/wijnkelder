@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCellarWithWines } from '@/lib/cellar';
-import { Nav } from '../Nav';
+import { Nav, TabBar } from '../Nav';
+import { PageHeader } from '../Masthead';
 import { AdviceForm } from './AdviceForm';
 
 export const dynamic = 'force-dynamic';
@@ -11,20 +12,14 @@ export default async function AdviesPage() {
   if (!data) redirect('/inloggen');
 
   return (
-    <main className="shell" style={{ maxWidth: 720 }}>
-      <div className="masthead">
-        <h1 className="wordmark" style={{ fontSize: 'clamp(26px, 4.5vw, 36px)' }}>
-          Wat drink ik <em>vanavond</em>
-        </h1>
-      </div>
-      <div className="masthead-sub">
-        <p style={{ fontSize: 14, color: 'var(--ink-3)', maxWidth: '58ch' }}>
-          Typ wat je eet. Ik zoek in je eigen aantekeningen — geen internet, geen model, en liever
-          geen advies dan een gekunstelde match.
-        </p>
-      </div>
+    <>
+      <PageHeader titel="Wat drink ik" cursief="vanavond"
+        sub="Typ wat je eet, of laat je door een paar vragen leiden. Ik zoek in je eigen aantekeningen — geen internet, geen model." />
+      <main className="shell" style={{ maxWidth: 720 }}>
       <Nav />
       <AdviceForm wines={data.wines} />
     </main>
+      <TabBar />
+    </>
   );
 }

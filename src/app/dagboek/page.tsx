@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { Nav } from '../Nav';
+import { Nav, TabBar } from '../Nav';
+import { PageHeader } from '../Masthead';
 import { LogEntry } from './LogEntry';
 import type { DrinkLogEntry } from '@/lib/types';
 
@@ -26,17 +27,9 @@ export default async function DagboekPage() {
   const entries = (data ?? []) as DrinkLogEntry[];
 
   return (
-    <main className="shell" style={{ maxWidth: 720 }}>
-      <div className="masthead">
-        <h1 className="wordmark" style={{ fontSize: 'clamp(26px, 4.5vw, 36px)' }}>Dagboek</h1>
-      </div>
-      <div className="masthead-sub">
-        <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>
-          {entries.length
-            ? `${entries.length} ${entries.length === 1 ? 'fles' : 'flessen'} genoteerd`
-            : 'Nog niets genoteerd'}
-        </p>
-      </div>
+    <>
+      <PageHeader titel="Dagboek" />
+      <main className="shell" style={{ maxWidth: 720 }}>
       <Nav />
 
       {!entries.length ? (
@@ -56,5 +49,7 @@ export default async function DagboekPage() {
         </ul>
       )}
     </main>
+      <TabBar />
+    </>
   );
 }

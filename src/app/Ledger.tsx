@@ -135,7 +135,9 @@ export function Ledger({ wines }: { wines: Wine[] }) {
           onClick={() => setAandacht(!aandacht)}
           aria-pressed={aandacht}
         >
-          Vraagt aandacht{attentionCount > 0 && <span className="chip-n">{attentionCount}</span>}
+          <span className="chip-lang">Vraagt aandacht</span>
+          <span className="chip-kort">Aandacht</span>
+          {attentionCount > 0 && <span className="chip-n">{attentionCount}</span>}
         </button>
       </div>
 
@@ -239,18 +241,16 @@ function Row({
             {wine.naam}
           </Link>
           {wine.jaar && <span className="row-vintage">{wine.jaar}</span>}
-          <span className={`mark ${badge.status}`}>{badge.label}</span>
         </h3>
-        {meta.length > 0 && (
-          <p className="row-meta">
-            {meta.map((m, i) => (
-              <span key={i}>
-                {i > 0 && <span className="sep">·</span>}
-                {m}
-              </span>
-            ))}
-          </p>
-        )}
+        <p className="row-meta">
+          <span className={`mark ${badge.status}`}>{badge.label}</span>
+          {meta.map((m, i) => (
+            <span key={i}>
+              <span className="sep">·</span>
+              {m}
+            </span>
+          ))}
+        </p>
       </div>
 
       <div className="window">

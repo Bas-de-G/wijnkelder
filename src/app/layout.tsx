@@ -5,13 +5,21 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Wijnkelder',
   description: 'Houd je wijnkelder bij: voorraad, drinkvensters, dagboek en advies bij het eten.',
+  appleWebApp: {
+    capable: true,
+    title: 'Wijnkelder',
+    statusBarStyle: 'black-translucent',
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F2F0EA' },
-    { media: '(prefers-color-scheme: dark)', color: '#131013' },
-  ],
+  width: 'device-width',
+  initialScale: 1,
+  // Laat de pagina achter de statusbalk en de home-indicator doorlopen; de
+  // kop en de onderbalk houden zelf rekening met die randen.
+  viewportFit: 'cover',
+  // De kop is in beide thema's donker, dus de statusbalk hoort daarbij te kleuren.
+  themeColor: '#52091F',
 };
 
 // Zet het opgeslagen thema vóór de eerste verf, anders flitst de app even in de

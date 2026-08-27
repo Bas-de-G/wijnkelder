@@ -43,6 +43,18 @@
   --w-read: 62ch;
 
   --lift: 0 1px 1px rgba(25,20,22,.04), 0 10px 28px -18px rgba(142,16,56,.35);
+
+  /* De kop is de kelder zelf: in beide thema's donker, zoals een wijnetiket. */
+  --kop-bg:      #52091F;
+  --kop-bg-2:    #33040F;
+  --kop-ink:     #FBF2F4;
+  --kop-dim:     rgba(251, 242, 244, .56);
+  --kop-rand:    rgba(255, 255, 255, .09);
+  --kop-nu:      #86CFA4;
+  --kop-wacht:   #E7B75F;
+  --kop-voorbij: #F397A5;
+
+  --tab-h: 58px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -166,54 +178,136 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   z-index: 1;
   max-width: var(--w-page);
   margin: 0 auto;
-  padding: 0 20px 120px;
+  padding: 22px 20px 120px;
 }
 
-.masthead {
+/* ── KOP ──────────────────────────────────────────────────────────────────── */
+/* Loopt van rand tot rand, ook buiten de leesbreedte van de rest. */
+.kop {
+  background: linear-gradient(168deg, var(--kop-bg) 0%, var(--kop-bg-2) 100%);
+  color: var(--kop-ink);
+  padding-top: env(safe-area-inset-top);
+  position: relative;
+  overflow: hidden;
+}
+/* Dezelfde korrel als op het papier, zodat de kop geen vlakke plaat wordt. */
+.kop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.09'/%3E%3C/svg%3E");
+}
+.kop-binnen {
+  position: relative;
+  z-index: 1;
+  max-width: var(--w-page);
+  margin: 0 auto;
+  padding: 22px 20px 20px;
+}
+.kop-slank .kop-binnen { padding-bottom: 22px; }
+
+.kop-rij {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  padding: 40px 0 18px;
-  border-bottom: 2px solid var(--ink);
-  margin-bottom: 2px;
+  gap: 14px;
 }
-.masthead-sub {
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 14px;
-  margin-bottom: 28px;
-  display: flex;
-  gap: 26px;
-  flex-wrap: wrap;
-  align-items: baseline;
-}
-
-.wordmark {
+.kop-merk {
   font-family: var(--serif);
-  font-size: clamp(30px, 5.5vw, 46px);
+  font-size: clamp(26px, 6vw, 36px);
   font-weight: 500;
   letter-spacing: -.03em;
-  line-height: 1;
+  line-height: 1.05;
+  color: var(--kop-ink);
+  text-decoration: none;
+  text-wrap: balance;
 }
-.wordmark em {
-  font-style: italic;
-  color: var(--oxblood);
+.kop-merk em { font-style: italic; color: var(--kop-voorbij); }
+.kop-sub {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--kop-dim);
+  margin-top: 8px;
+  max-width: 56ch;
 }
+.kop-acties { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.kop-datum { font-size: 11.5px; color: var(--kop-dim); }
+@media (max-width: 560px) { .kop-datum { display: none; } }
 
-/* Kerncijfers in de kop: getal groot in mono, label eronder. */
-.tally { display: flex; gap: 22px; flex-wrap: wrap; }
-@media (max-width: 560px) { .tally { gap: 14px 18px; } }
-.tally-item { display: flex; flex-direction: column; gap: 1px; }
-.tally-n {
+.kop-knop {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--kop-ink);
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid var(--kop-rand);
+  border-radius: 2px;
+  padding: 7px 11px;
+  min-height: 34px;
+  cursor: pointer;
+  transition: background .16s;
+}
+.kop-knop:hover { background: rgba(255, 255, 255, .16); }
+.kop-knop:focus-visible { outline: 2px solid var(--kop-voorbij); outline-offset: 2px; }
+
+/* De vier cijfers als in de wand uitgespaarde vakken, niet als zwevende kaartjes. */
+.cijfers {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin: 18px 0 0;
+  background: var(--kop-rand);
+  border: 1px solid var(--kop-rand);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.cijfer {
+  background: rgba(0, 0, 0, .22);
+  padding: 11px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cijfer dd {
+  margin: 0;
   font-family: var(--mono);
-  font-size: 21px;
+  font-size: 22px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
+  color: var(--kop-ink);
 }
-.tally-item.alert .tally-n { color: var(--oxblood); }
-.tally-l { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.cijfer dt {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--kop-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cijfer.nu dd { color: var(--kop-nu); }
+.cijfer.wacht dd { color: var(--kop-wacht); }
+.cijfer.voorbij dd { color: var(--kop-voorbij); }
+
+/* Vier naast elkaar blijven, ook op een smalle telefoon: twee rijen kost te
+   veel hoogte boven een lijst die je juist wilt zien. */
+@media (max-width: 560px) {
+  .kop-binnen { padding: 16px 16px 14px; }
+  .cijfers { margin-top: 14px; }
+  .cijfer { padding: 9px 8px 8px; }
+  .cijfer dd { font-size: 19px; }
+  .cijfer dt {
+    font-size: 8.5px;
+    letter-spacing: .06em;
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
 
 /* ── HET REGISTER ─────────────────────────────────────────────────────────── */
 .ledger { position: relative; }
@@ -387,6 +481,7 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  vertical-align: baseline;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .07em;
@@ -540,6 +635,159 @@ legend {
 .nav a:hover { color: var(--ink); }
 .nav a[aria-current='page'] { color: var(--oxblood); border-bottom-color: var(--oxblood); }
 
+/* ── ONDERBALK, PLUSKNOP EN PANEEL ─────────────────────────────────────────── */
+/* Op brede schermen doet de tekstrij het werk; op smalle schermen hoort
+   navigatie onderin, binnen duimbereik, zoals in elke telefoon-app. */
+.tabbar, .fab { display: none; }
+
+@media (max-width: 860px) {
+  .nav { display: none; }
+  .tabbar { display: grid; }
+  .fab { display: flex; }
+  .shell { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 34px); }
+}
+
+.tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 20;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--paper-2);
+  border-top: 1px solid var(--rule);
+  padding-bottom: env(safe-area-inset-bottom);
+  /* Zodat de lijst er niet hard tegenaan botst bij het scrollen. */
+  box-shadow: 0 -8px 20px -18px rgba(25, 20, 22, .5);
+}
+.tabbar a, .tabbar button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: var(--tab-h);
+  padding: 0 2px;
+  border: none;
+  background: none;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--ink-3);
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  transition: color .16s;
+}
+.tabbar svg { width: 22px; height: 22px; }
+.tabbar a:active, .tabbar button:active { color: var(--ink); }
+.tabbar [aria-current='page'] { color: var(--oxblood); }
+/* Een streepje bovenaan markeert de actieve tab zonder het icoon te vullen. */
+.tabbar [aria-current='page']::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 22%; right: 22%;
+  height: 2px;
+  background: var(--oxblood);
+}
+.tabbar span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 21;
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  background: var(--oxblood);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 16px -4px rgba(82, 9, 31, .5);
+  transition: transform .14s;
+}
+.fab:active { transform: scale(.94); }
+.fab svg { width: 26px; height: 26px; stroke-width: 2; }
+:root[data-theme='dark'] .fab,
+:root:not([data-theme='light']) .fab { color: #24070F; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .fab { color: #fff; }
+}
+
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(20, 14, 17, .5);
+  display: flex;
+  align-items: flex-end;
+  animation: vervaag .18s ease-out both;
+}
+@keyframes vervaag { from { opacity: 0; } to { opacity: 1; } }
+
+.sheet {
+  width: 100%;
+  background: var(--paper-2);
+  border-top: 1px solid var(--rule);
+  border-radius: 14px 14px 0 0;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  animation: omhoog .22s cubic-bezier(.2, .7, .3, 1) both;
+  max-height: 82vh;
+  overflow-y: auto;
+}
+@keyframes omhoog { from { transform: translateY(100%); } to { transform: none; } }
+
+.sheet-kop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.sheet-sluit {
+  background: none;
+  border: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+}
+.sheet-sluit svg { width: 20px; height: 20px; }
+
+.sheet a, .sheet button[type='submit'] {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 4px;
+  font-family: var(--sans);
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.sheet svg { width: 21px; height: 21px; color: var(--ink-3); flex-shrink: 0; }
+.sheet a[aria-current='page'] { color: var(--oxblood); }
+.sheet a[aria-current='page'] svg { color: var(--oxblood); }
+.sheet-scheiding {
+  border-top: 1px solid var(--rule-soft);
+  margin-top: 6px;
+  padding-top: 4px;
+}
+.sheet-scheiding button { color: var(--ink-2); }
+
 /* ── FILTERBALK ────────────────────────────────────────────────────────────── */
 .filters {
   display: flex;
@@ -572,23 +820,31 @@ legend {
   .row {
     grid-template-columns: 1fr auto;
     grid-template-areas: 'main stock' 'window window';
-    gap: 4px 14px;
-    padding: 15px 0;
+    gap: 3px 12px;
+    padding: 12px 0;
   }
+  .row-name { font-size: 17px; gap: 6px; }
+  .row-vintage { font-size: 12px; }
+  .row-meta { font-size: 12px; margin-top: 1px; }
+  .row-stock { font-size: 12px; }
+  .row-stock .n { font-size: 14px; }
   .row-main { grid-area: main; }
   .row-stock { grid-area: stock; align-self: start; }
-  .window { grid-area: window; margin-top: 10px; height: 26px; }
+  .window { grid-area: window; margin-top: 7px; height: 23px; }
 
-  .window-years {
+  .row:first-child .window-years {
     display: flex;
     justify-content: space-between;
     position: absolute;
-    top: 13px;
+    top: 12px;
     left: 0; right: 0;
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 9.5px;
     color: var(--ink-3);
   }
+  /* Alleen de eerste regel draagt de schaal; de rest wordt daardoor compacter. */
+  .row:first-child .window { height: 23px; }
+  .row:not(:first-child) .window { height: 12px; margin-top: 9px; }
   .window-now {
     display: block;
     position: absolute;
@@ -802,6 +1058,13 @@ legend {
 }
 .chip:hover { border-color: var(--ink-3); color: var(--ink); }
 .chip.on { border-color: var(--oxblood); color: var(--oxblood); background: var(--oxblood-bg); }
+/* Op een smal scherm past het hele label niet naast de twee keuzelijsten. */
+.chip-kort { display: none; }
+@media (max-width: 860px) {
+  .chip-lang { display: none; }
+  .chip-kort { display: inline; }
+}
+
 .chip-n {
   font-family: var(--mono);
   font-size: 11px;
@@ -1053,4 +1316,33 @@ legend {
 @media (max-width: 560px) {
   .stap { grid-template-columns: 26px 1fr; gap: 12px; }
   .stap-nr { width: 24px; height: 24px; font-size: 11px; }
+}
+
+/* Knoppen die op mobiel al door de onderbalk of de plusknop gedekt worden. */
+@media (max-width: 860px) {
+  .alleen-breed { display: none !important; }
+
+  /* Ruimere aanraakvlakken. */
+  .filters input[type='search'], .filters select { min-height: 44px; font-size: 16px; }
+  .field input, .field select { min-height: 46px; font-size: 16px; }
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 36px; }
+
+  /* Zoeken is de meestgebruikte ingang en krijgt een eigen regel; de drie
+     knoppen passen daaronder naast elkaar. Horizontaal schuiven was hier geen
+     optie: een mask op een scrollend vak vervaagt in Chromium ten opzichte van
+     de volledige inhoud, dus de overgang valt buiten beeld. */
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+  }
+  .filters input[type='search'] { grid-column: 1 / -1; width: 100%; }
+  .filters select { width: 100%; min-width: 0; padding-left: 9px; padding-right: 4px; }
+  .chip { min-height: 44px; padding: 8px 11px; gap: 5px; }
+}
+
+/* iOS zoomt in op een invoerveld met een letter kleiner dan 16px. */
+@media (max-width: 860px) {
+  .field textarea, .filters input { font-size: 16px; }
 }

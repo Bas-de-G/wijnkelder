@@ -3,7 +3,8 @@ import { headers } from 'next/headers';
 import QRCode from 'qrcode';
 import { createClient } from '@/lib/supabase/server';
 import { getCellarWithWines } from '@/lib/cellar';
-import { Nav } from '../Nav';
+import { Nav, TabBar } from '../Nav';
+import { PageHeader } from '../Masthead';
 import { Downloads } from './Downloads';
 import { ShareList } from './ShareList';
 
@@ -58,21 +59,15 @@ export default async function ExportPage() {
   );
 
   return (
-    <main className="shell" style={{ maxWidth: 760 }}>
-      <div className="masthead">
-        <h1 className="wordmark" style={{ fontSize: 'clamp(26px, 4.5vw, 36px)' }}>
-          Exporteren &amp; <em>delen</em>
-        </h1>
-      </div>
-      <div className="masthead-sub">
-        <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>
-          {data.wines.length} wijnen in je kelder.
-        </p>
-      </div>
+    <>
+      <PageHeader titel="Exporteren &" cursief="delen" />
+      <main className="shell" style={{ maxWidth: 760 }}>
       <Nav />
 
       <Downloads leeg={data.wines.length === 0} />
       <ShareList links={links} heeftWijnen={data.wines.length > 0} />
     </main>
+      <TabBar />
+    </>
   );
 }
