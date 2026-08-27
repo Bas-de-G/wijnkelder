@@ -30,7 +30,8 @@ npm run dev
 ```
 
 Eerste keer? Volg [`docs/opzetten.md`](docs/opzetten.md) — het schema moet één keer in Supabase
-gedraaid worden en de inlog-redirect ingesteld.
+gedraaid worden en de inlog-redirect ingesteld. Datzelfde document beschrijft ook hoe je de app
+online zet op Vercel.
 
 ## De legacy-app draaien
 
