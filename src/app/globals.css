@@ -33,9 +33,11 @@
   --moss:       #2E6042;
   --moss-bg:    #E4EDE6;
 
-  --serif:  'Bodoni Moda', 'Didot', 'Bodoni MT', Georgia, serif;
-  --sans:   'Karla', ui-sans-serif, system-ui, sans-serif;
-  --mono:   'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
+  /* De variabelen komen van next/font (src/app/fonts.ts); de terugval erachter
+     geldt zolang het lettertype nog laadt of niet beschikbaar is. */
+  --serif:  var(--font-serif), 'Didot', 'Bodoni MT', Georgia, serif;
+  --sans:   var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --mono:   var(--font-mono), ui-monospace, 'SFMono-Regular', monospace;
 
   --w-page: 1080px;
   --w-read: 62ch;
@@ -810,3 +812,47 @@ legend {
   color: var(--ink-2);
 }
 .chip.on .chip-n { background: var(--oxblood); color: var(--paper-2); }
+
+/* ── INLOGGEN ──────────────────────────────────────────────────────────────── */
+.auth-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 26px;
+}
+.auth-tab {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 10px 15px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color .16s, border-color .16s;
+}
+.auth-tab:hover { color: var(--ink); }
+.auth-tab.on { color: var(--oxblood); border-bottom-color: var(--oxblood); }
+
+.check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.check input { margin-top: 3px; accent-color: var(--oxblood); }
+
+.linkish {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--oxblood);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

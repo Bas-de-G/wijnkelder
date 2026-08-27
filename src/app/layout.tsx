@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { serif, sans, mono } from './fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -19,14 +20,12 @@ const THEME_SCRIPT = `try{var t=localStorage.getItem('wk-theme');if(t==='light'|
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="nl" suppressHydrationWarning>
+    <html
+      lang="nl"
+      className={`${serif.variable} ${sans.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..500&family=Karla:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
-        />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>{children}</body>
