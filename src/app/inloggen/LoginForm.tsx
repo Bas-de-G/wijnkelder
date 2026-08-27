@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { loginErrorText } from '@/lib/auth-errors';
 
 export default function LoginForm() {
   const params = useSearchParams();
@@ -28,12 +29,7 @@ export default function LoginForm() {
     });
 
     if (error) {
-      // Toon wat er misging én wat de gebruiker eraan kan doen.
-      setError(
-        error.message.toLowerCase().includes('rate')
-          ? 'Er zijn net al meerdere mails verstuurd. Wacht een minuut en probeer het opnieuw.'
-          : `Versturen lukte niet: ${error.message}`
-      );
+      setError(loginErrorText(error));
       setState('idle');
       return;
     }
