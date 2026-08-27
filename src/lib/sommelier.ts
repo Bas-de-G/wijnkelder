@@ -91,7 +91,8 @@ export function adviseWines(wines: Wine[], input: AdviceInput): AdviceResult {
   const { gerecht, gezelschap = '', gelegenheid = '' } = input;
   const summary = [gerecht, gezelschap, gelegenheid].filter(Boolean).join(' · ');
 
-  const available = wines.filter((w) => (w.aantal || 0) > 0);
+  // Number() omdat een aantal uit een import als tekst kan binnenkomen.
+  const available = wines.filter((w) => Number(w.aantal) > 0);
   const foodWords = tokenize([gerecht, gelegenheid, gezelschap].filter(Boolean).join(' '));
   const special = foodWords.some((w) => SPECIAL_WORDS.has(w));
 
@@ -232,7 +233,7 @@ export function sommScore(w: Wine, antwoorden: SommAntwoorden, year?: number): n
 export function sommAdvies(wines: Wine[], antwoorden: SommAntwoorden, year?: number): AdviceHit[] {
   const labels = ['Beste keuze', 'Ook goed'];
   return wines
-    .filter((w) => (w.aantal || 0) > 0)
+    .filter((w) => Number(w.aantal) > 0)
     .map((w) => ({ wine: w, score: { total: sommScore(w, antwoorden, year), contentScore: 0 } }))
     .sort((a, b) => b.score.total - a.score.total)
     .slice(0, 2)

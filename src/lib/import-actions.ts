@@ -68,10 +68,15 @@ export async function previewImport(_prev: ImportPreview, form: FormData): Promi
 
   const current = new Map(rows.map((r) => [r.id, r]));
   const echtGewijzigd = plan.bijgewerkt
-    .map(({ id: wid, patch }) => ({
-      naam: patch.naam,
-      velden: changedFields(patch, current.get(wid) ?? {}),
-    }))
+    .map(({ id: wid, patch }) => {
+      const bestaand = current.get(wid);
+      return {
+        // Een aanvulling noemt vaak geen naam; toon dan die uit de kelder,
+        // want daar herkent de gebruiker de wijn aan.
+        naam: patch.naam ?? bestaand?.naam ?? 'Onbekende wijn',
+        velden: changedFields(patch, bestaand ?? {}),
+      };
+    })
     .filter((x) => x.velden.length > 0);
 
   return {

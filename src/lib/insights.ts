@@ -19,7 +19,9 @@ export function totals(wines: Wine[]): Totals {
   let flessen = 0, waarde = 0, metPrijs = 0, scoreSom = 0, beoordeeld = 0;
 
   for (const w of wines) {
-    const aantal = w.aantal || 0;
+    // Number() omdat een aantal uit een import als tekst kan binnenkomen; met
+    // += zou dat een tekstuele optelling worden ("0" + "2" = "02").
+    const aantal = Number(w.aantal) || 0;
     flessen += aantal;
     if (w.prijs != null && w.prijs > 0) {
       waarde += w.prijs * aantal;
@@ -61,7 +63,7 @@ export function countBy(
   for (const w of wines) {
     const raw = w[field];
     if (!raw) continue;
-    const aantal = w.aantal || 0;
+    const aantal = Number(w.aantal) || 0;
     if (aantal === 0) continue;
 
     // Let op: een veld met alleen spaties is truthy, dus filteren na het trimmen —
@@ -87,7 +89,7 @@ export type StatusCounts = Record<DrinkStatus, number>;
 
 export function countByStatus(wines: Wine[], year: number = currentYear()): StatusCounts {
   const uit: StatusCounts = { nu: 0, wt: 0, vb: 0, nvt: 0 };
-  for (const w of wines) uit[drinkBadge(w, year).status] += w.aantal || 0;
+  for (const w of wines) uit[drinkBadge(w, year).status] += Number(w.aantal) || 0;
   return uit;
 }
 
@@ -95,7 +97,7 @@ export function countByStatus(wines: Wine[], year: number = currentYear()): Stat
 export function needsAttention(wines: Wine[], year: number = currentYear()) {
   const voorbij: Wine[] = [], bijnaVoorbij: Wine[] = [], bijnaOpDronk: Wine[] = [];
   for (const w of wines) {
-    if ((w.aantal || 0) === 0) continue;
+    if (!(Number(w.aantal) > 0)) continue;
     const b = drinkBadge(w, year);
     if (b.status === 'vb') voorbij.push(w);
     else if (b.closing) bijnaVoorbij.push(w);

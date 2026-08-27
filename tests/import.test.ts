@@ -56,8 +56,16 @@ describe('mapWine', () => {
     expect(mapWine({ naam: 'x', type: 'Rosé' }).type).toBe('Rosé');
   });
 
-  it('geeft een naamloze wijn toch een naam', () => {
-    expect(mapWine({}).naam).toBe('Naamloze wijn');
+  it('houdt een ontbrekend type leeg in plaats van er Overig van te maken', () => {
+    // Anders zou een aanvulling die het type niet noemt een rode wijn op
+    // Overig zetten.
+    expect(mapWine({ naam: 'x' }).type).toBeNull();
+    expect(forInsert(mapWine({ naam: 'x' })).type).toBe('Overig');
+  });
+
+  it('houdt een ontbrekende naam leeg, maar geeft een nieuwe wijn er wel een', () => {
+    expect(mapWine({}).naam).toBeNull();
+    expect(forInsert(mapWine({})).naam).toBe('Naamloze wijn');
   });
 });
 

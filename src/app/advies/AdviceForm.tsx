@@ -20,14 +20,32 @@ export function AdviceForm({ wines }: { wines: Wine[] }) {
   const [gelegenheid, setGelegenheid] = useState('');
   const [result, setResult] = useState<AdviceResult | null>(null);
 
-  const voorraad = wines.filter((w) => w.aantal > 0);
+  // Number() omdat een aantal uit een import of een oude back-up als tekst kan
+  // binnenkomen; "1" > 0 klopt toevallig, maar "" > 0 en null > 0 niet.
+  const voorraad = wines.filter((w) => Number(w.aantal) > 0);
 
   if (!voorraad.length) {
+    // Een kelder zonder wijnen vraagt om iets anders dan een kelder waarin alle
+    // flessen op zijn. Dat laatste kwam eerder als "voeg eerst wijn toe" op het
+    // scherm, wat verwarrend is als je je wijnen wél ziet staan.
+    const leeg = wines.length === 0;
     return (
       <div className="state-empty">
-        <p className="display">Geen flessen op voorraad</p>
-        <p style={{ marginBottom: 20 }}>Voeg eerst wijn toe, dan kan ik iets voorstellen.</p>
-        <Link className="btn btn-primary" href="/toevoegen">Wijn toevoegen</Link>
+        <p className="display">{leeg ? 'Je kelder is nog leeg' : 'Alle flessen zijn op'}</p>
+        <p style={{ marginBottom: 20, maxWidth: '44ch', marginLeft: 'auto', marginRight: 'auto' }}>
+          {leeg ? (
+            'Voeg eerst wijn toe, dan kan ik iets voorstellen.'
+          ) : (
+            <>
+              Je hebt {wines.length} {wines.length === 1 ? 'wijn' : 'wijnen'} in je register, maar
+              van geen enkele staat er nog een fles. Wijnen op nul flessen blijven als herinnering
+              staan; vul het aantal aan bij een wijn die je opnieuw hebt gekocht.
+            </>
+          )}
+        </p>
+        <Link className="btn btn-primary" href={leeg ? '/toevoegen' : '/'}>
+          {leeg ? 'Wijn toevoegen' : 'Naar mijn kelder'}
+        </Link>
       </div>
     );
   }

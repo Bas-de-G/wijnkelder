@@ -232,3 +232,56 @@ describe('de opdracht die de app aanlevert', () => {
     expect(ENRICH_PROMPT).toContain('nooit informatie verzinnen');
   });
 });
+
+describe('het antwoord zoals Claude het echt teruggeeft', () => {
+  // De opdracht vraagt om "het id plus alleen de velden die je hebt aangevuld".
+  // Claude stuurt dus géén naam mee. En voor een wijn die in de app zelf is
+  // aangemaakt schrijft de export het primaire id in het id-veld, want
+  // legacy_id is dan leeg.
+  const inDeKelder = [{
+    id: '3f9a7c1e-0b2d-4e5f-8a91-2c3d4e5f6a7b',
+    legacy_id: null,
+    naam: 'Barolo Riserva',
+    jaar: 2016,
+  }];
+
+  const antwoordVanClaude = {
+    update_wines: [{
+      id: '3f9a7c1e-0b2d-4e5f-8a91-2c3d4e5f6a7b',
+      druif: 'Nebbiolo',
+      van: 2024,
+      tm: 2040,
+      note: 'Wijnhuis: Vietti.\n\nLekker bij: gestoofd rundvlees.',
+    }],
+  };
+
+  it('herkent de wijn aan het id uit de export', () => {
+    const b = readBackup(antwoordVanClaude)!;
+    const plan = planImport(b.wines, inDeKelder, b.soort);
+    expect(plan.onbekend, 'zou niet als onbekend afgedaan mogen worden').toEqual([]);
+    expect(plan.bijgewerkt).toHaveLength(1);
+    expect(plan.bijgewerkt[0].id).toBe('3f9a7c1e-0b2d-4e5f-8a91-2c3d4e5f6a7b');
+  });
+
+  it('overschrijft de naam niet met een verzonnen naam', () => {
+    const b = readBackup(antwoordVanClaude)!;
+    const plan = planImport(b.wines, inDeKelder, b.soort);
+    const patch = plan.bijgewerkt[0].patch;
+    expect(patch.naam, 'een ontbrekende naam mag geen "Naamloze wijn" worden').toBeNull();
+
+    const velden = changedFields(patch, { naam: 'Barolo Riserva', jaar: 2016, druif: null, note: null });
+    expect(velden, 'de naam mag niet als wijziging gelden').not.toContain('naam');
+    expect(velden.sort()).toEqual(['drink_from', 'drink_to', 'druif', 'note']);
+  });
+
+  it('werkt ook als de wijn wél een legacy_id heeft', () => {
+    const uitOudeApp = [{ id: 'db-1', legacy_id: '1756219000000', naam: 'Chablis', jaar: 2021 }];
+    const plan = planImport([{ id: 1756219000000, druif: 'Chardonnay' }], uitOudeApp, 'aanvulling');
+    expect(plan.bijgewerkt[0].id).toBe('db-1');
+  });
+
+  it('geeft een nieuwe wijn zonder naam alsnog een leesbare naam', () => {
+    const plan = planImport([{ druif: 'Merlot' }], [], 'volledig');
+    expect(forInsert(plan.nieuw[0]).naam).toBe('Naamloze wijn');
+  });
+});

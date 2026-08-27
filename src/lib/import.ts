@@ -77,8 +77,15 @@ export interface GelezenBackup {
 
 export interface MappedWine {
   legacy_id: string | null;
-  naam: string;
-  type: WineType;
+  /**
+   * null = de aanlevering noemde geen naam. Dat is de normale vorm van een
+   * aanvulling: de opdracht vraagt om het id plus alleen de aangevulde velden.
+   * Een verzonnen naam zou de echte overschrijven zodra de wijn gematcht wordt.
+   */
+  naam: string | null;
+  /** null = niet genoemd. Een aanvulling die het type weglaat mag een rode wijn
+   *  niet op "Overig" zetten. */
+  type: WineType | null;
   regio: string | null;
   druif: string | null;
   producent: string | null;
@@ -97,7 +104,13 @@ export interface MappedWine {
 
 /** Waarden voor een wijn die nieuw wordt aangemaakt; hier zijn defaults wél juist. */
 export function forInsert(w: MappedWine) {
-  return { ...w, aantal: w.aantal ?? 1, sterren: w.sterren ?? 0 };
+  return {
+    ...w,
+    naam: w.naam ?? 'Naamloze wijn',
+    type: w.type ?? 'Overig',
+    aantal: w.aantal ?? 1,
+    sterren: w.sterren ?? 0,
+  };
 }
 
 const text = (v: unknown): string | null => {
@@ -119,9 +132,11 @@ const decimal = (v: unknown): number | null => {
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
 };
 
-const kind = (v: unknown): WineType => {
+/** Een onbekend type valt terug op Overig; een ontbrekend type blijft leeg. */
+const kind = (v: unknown): WineType | null => {
   const s = text(v);
-  return (WINE_TYPES as string[]).includes(s ?? '') ? (s as WineType) : 'Overig';
+  if (s === null) return null;
+  return (WINE_TYPES as string[]).includes(s) ? (s as WineType) : 'Overig';
 };
 
 const clampYear = (n: number | null): number | null =>
@@ -132,7 +147,7 @@ export function mapWine(w: LegacyWine): MappedWine {
   const sterren = whole(w.sterren);
   return {
     legacy_id: text(w.id),
-    naam: text(w.naam) ?? 'Naamloze wijn',
+    naam: text(w.naam),
     type: kind(w.type),
     regio: text(w.regio),
     druif: text(w.druif),
@@ -218,11 +233,15 @@ export function planImport(
   existing: ExistingWine[],
   soort: BackupSoort = 'volledig'
 ): ImportPlan {
-  const byLegacy = new Map<string, ExistingWine>();
+  // De export schrijft `legacy_id ?? id` in het id-veld. Voor een wijn die in de
+  // app zelf is aangemaakt is legacy_id leeg, dus staat daar het primaire id.
+  // Beide moeten dus opzoekbaar zijn, anders komt een aanvulling nergens aan.
+  const opId = new Map<string, ExistingWine>();
   const byName = new Map<string, ExistingWine>();
   const byNameOnly = new Map<string, ExistingWine>();
   for (const e of existing) {
-    if (e.legacy_id) byLegacy.set(e.legacy_id, e);
+    opId.set(String(e.id), e);
+    if (e.legacy_id) opId.set(e.legacy_id, e);
     byName.set(key(e.naam, e.jaar), e);
     // Alleen als de naam eenduidig is; bij twee jaargangen van dezelfde wijn
     // mag er niet gegokt worden welke bedoeld is.
@@ -237,21 +256,25 @@ export function planImport(
     const mapped = mapWine(row);
 
     // Duplicaten binnen één bestand tellen maar één keer mee.
-    const dedupe = mapped.legacy_id ?? key(mapped.naam, mapped.jaar);
-    if (seen.has(dedupe)) continue;
-    seen.add(dedupe);
+    const dedupe = mapped.legacy_id ?? (mapped.naam ? key(mapped.naam, mapped.jaar) : null);
+    if (dedupe) {
+      if (seen.has(dedupe)) continue;
+      seen.add(dedupe);
+    }
 
     // Bij een aanvulling matcht een wijn zonder jaartal ook op de naam alleen:
     // Claude laat het jaartal soms weg als het in de export al klopte.
     const match =
-      (mapped.legacy_id ? byLegacy.get(mapped.legacy_id) : undefined) ??
-      byName.get(key(mapped.naam, mapped.jaar)) ??
-      (mapped.jaar == null ? byNameOnly.get(mapped.naam.trim().toLowerCase()) : undefined);
+      (mapped.legacy_id ? opId.get(mapped.legacy_id) : undefined) ??
+      (mapped.naam ? byName.get(key(mapped.naam, mapped.jaar)) : undefined) ??
+      (mapped.naam && mapped.jaar == null
+        ? byNameOnly.get(mapped.naam.trim().toLowerCase())
+        : undefined);
 
     if (!match) {
       // Een aanvulling hoort niets nieuws aan te maken: staat de wijn er niet,
       // dan is er iets misgegaan en is stil toevoegen erger dan overslaan.
-      if (soort === 'aanvulling') plan.onbekend.push(mapped.naam);
+      if (soort === 'aanvulling') plan.onbekend.push(mapped.naam ?? `id ${mapped.legacy_id ?? '?'}`);
       else plan.nieuw.push(mapped);
       continue;
     }

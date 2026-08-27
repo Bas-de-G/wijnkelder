@@ -103,3 +103,21 @@ describe('needsAttention', () => {
     expect(a.voorbij).toEqual([]);
   });
 });
+
+describe('voorraad tellen als het aantal als tekst binnenkomt', () => {
+  // Uit een import of een oude back-up kan aantal als string komen. "1" > 0
+  // klopt toevallig, maar null en "" niet — vandaar Number() overal.
+  const wines = [
+    w({ naam: 'tekst', aantal: '2' as unknown as number }),
+    w({ naam: 'leeg', aantal: '' as unknown as number }),
+    w({ naam: 'nul', aantal: 0 }),
+  ];
+
+  it('telt een tekstueel aantal gewoon mee', () => {
+    expect(countBy(wines, 'type')).toEqual([{ label: 'Rood', aantal: 2 }]);
+  });
+
+  it('telt flessen op zonder aan elkaar te plakken', () => {
+    expect(totals(wines).flessen).toBe(2);
+  });
+});
