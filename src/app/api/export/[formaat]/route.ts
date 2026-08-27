@@ -4,6 +4,7 @@ import { toCSV, exportFilename } from '@/lib/export';
 import { buildWorkbook } from '@/lib/export-excel';
 import { buildPdf } from '@/lib/export-pdf';
 import { createClient } from '@/lib/supabase/server';
+import { heeftAanvullingNodig } from '@/lib/enrich-prompt';
 
 const FORMATEN = ['csv', 'xlsx', 'pdf', 'json'] as const;
 type Formaat = (typeof FORMATEN)[number];
@@ -20,7 +21,7 @@ function bestand(body: BodyInit, type: string, naam: string) {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ formaat: string }> }
 ) {
   const { formaat } = await params;
@@ -30,7 +31,13 @@ export async function GET(
 
   const data = await getCellarWithWines();
   if (!data) return NextResponse.json({ fout: 'Niet ingelogd.' }, { status: 401 });
-  const { cellar, wines } = data;
+  const { cellar } = data;
+
+  // ?onvolledig=1 exporteert alleen de wijnen die nog aanvulling kunnen
+  // gebruiken. Bij een grote kelder scheelt dat enorm: Claude hoeft dan niet
+  // honderden wijnen terug te sturen die al compleet zijn.
+  const alleenOnvolledig = request.nextUrl.searchParams.get('onvolledig') === '1';
+  const wines = alleenOnvolledig ? data.wines.filter(heeftAanvullingNodig) : data.wines;
 
   if (formaat === 'csv') {
     return bestand(toCSV(wines), 'text/csv; charset=utf-8', exportFilename('csv'));
@@ -51,12 +58,15 @@ export async function GET(
   }
 
   // Volledige back-up: ook dagboek en verlanglijst, in het formaat dat de
-  // importfunctie van de oude app leest.
+  // importfunctie van de oude app leest. Bij een selectie voor aanvulling
+  // blijven die weg — die hebben er niets mee te maken.
   const supabase = await createClient();
-  const [{ data: log }, { data: wishlist }] = await Promise.all([
-    supabase.from('drink_log').select('*').eq('cellar_id', cellar.id),
-    supabase.from('wishlist').select('*').eq('cellar_id', cellar.id),
-  ]);
+  const [{ data: log }, { data: wishlist }] = alleenOnvolledig
+    ? [{ data: [] }, { data: [] }]
+    : await Promise.all([
+        supabase.from('drink_log').select('*').eq('cellar_id', cellar.id),
+        supabase.from('wishlist').select('*').eq('cellar_id', cellar.id),
+      ]);
 
   const payload = {
     version: 2,
@@ -85,6 +95,6 @@ export async function GET(
   return bestand(
     JSON.stringify(payload, null, 2),
     'application/json; charset=utf-8',
-    exportFilename('json')
+    exportFilename(alleenOnvolledig ? 'aanvullen.json' : 'json')
   );
 }

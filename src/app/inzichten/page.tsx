@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { getCellarWithWines } from '@/lib/cellar';
 import { totals, countBy, countByStatus } from '@/lib/insights';
 import { currentYear } from '@/lib/drinkwindow';
-import { Nav } from '../Nav';
+import { Nav, TabBar } from '../Nav';
+import { PageHeader } from '../Masthead';
 import { Bars } from './Charts';
 
 export const dynamic = 'force-dynamic';
@@ -22,31 +23,25 @@ export default async function InzichtenPage() {
 
   if (!wines.length) {
     return (
+    <>
+      <PageHeader titel="Inzichten" />
       <main className="shell" style={{ maxWidth: 820 }}>
-        <div className="masthead">
-          <h1 className="wordmark" style={{ fontSize: 'clamp(26px, 4.5vw, 36px)' }}>Inzichten</h1>
-        </div>
-        <Nav />
+      <Nav />
         <div className="state-empty">
           <p className="display">Nog niets te tellen</p>
           <p style={{ marginBottom: 20 }}>Voeg wijnen toe, dan verschijnen hier de verhoudingen.</p>
           <Link className="btn btn-primary" href="/toevoegen">Wijn toevoegen</Link>
         </div>
       </main>
+        <TabBar />
+      </>
     );
   }
 
   return (
-    <main className="shell" style={{ maxWidth: 820 }}>
-      <div className="masthead">
-        <h1 className="wordmark" style={{ fontSize: 'clamp(26px, 4.5vw, 36px)' }}>Inzichten</h1>
-      </div>
-      <div className="masthead-sub">
-        <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>
-          Tellingen gaan over flessen, niet over regels — zes flessen van dezelfde wijn tellen
-          zes keer.
-        </p>
-      </div>
+      <>
+        <PageHeader titel="Inzichten" />
+        <main className="shell" style={{ maxWidth: 820 }}>
       <Nav />
 
       <div className="stats">
@@ -95,5 +90,7 @@ export default async function InzichtenPage() {
         leeg="Nog geen druiven ingevuld. Claude kan die aanvullen — zie de instructie in de handleiding."
       />
     </main>
+      <TabBar />
+    </>
   );
 }

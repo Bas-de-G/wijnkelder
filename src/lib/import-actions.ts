@@ -3,15 +3,18 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from './supabase/server';
-import { readBackup, planImport, changedFields, forInsert, type LegacyWine } from './import';
+import { readBackup, planImport, changedFields, forInsert, type BackupSoort } from './import';
 
 export interface ImportPreview {
   error?: string;
+  soort?: BackupSoort;
   nieuw?: number;
   bijgewerkt?: number;
   ongewijzigd?: number;
   logRegels?: number;
   wensen?: number;
+  /** Namen uit een aanvulling die nergens bij pasten. */
+  onbekend?: string[];
   /** Voorbeeld van wat er verandert, voor in het overzicht. */
   voorbeeld?: Array<{ naam: string; velden: string[] }>;
   payload?: string;
@@ -43,7 +46,13 @@ export async function previewImport(_prev: ImportPreview, form: FormData): Promi
   }
 
   const backup = readBackup(parsed);
-  if (!backup?.wines?.length) {
+  if (!backup) {
+    return {
+      error: 'Dit bestand heeft geen herkenbare vorm. Verwacht wordt een back-up met een ' +
+        '"wines"-lijst, of een aanvulling met "update_wines" of "add_wines".',
+    };
+  }
+  if (!backup.wines.length) {
     return { error: 'Er staan geen wijnen in dit bestand.' };
   }
 
@@ -55,7 +64,7 @@ export async function previewImport(_prev: ImportPreview, form: FormData): Promi
     .is('deleted_at', null);
 
   const rows = existing ?? [];
-  const plan = planImport(backup.wines as LegacyWine[], rows);
+  const plan = planImport(backup.wines, rows, backup.soort);
 
   const current = new Map(rows.map((r) => [r.id, r]));
   const echtGewijzigd = plan.bijgewerkt
@@ -66,11 +75,13 @@ export async function previewImport(_prev: ImportPreview, form: FormData): Promi
     .filter((x) => x.velden.length > 0);
 
   return {
+    soort: backup.soort,
     nieuw: plan.nieuw.length,
     bijgewerkt: echtGewijzigd.length,
     ongewijzigd: plan.bijgewerkt.length - echtGewijzigd.length,
-    logRegels: backup.log?.length ?? 0,
-    wensen: backup.wishlist?.length ?? 0,
+    logRegels: backup.log.length,
+    wensen: backup.wishlist.length,
+    onbekend: plan.onbekend,
     voorbeeld: echtGewijzigd.slice(0, 6),
     payload: raw,
   };
@@ -89,13 +100,13 @@ export async function runImport(_prev: ImportResult, form: FormData): Promise<Im
   if (typeof raw !== 'string') return { error: 'De back-up is onderweg kwijtgeraakt. Kies het bestand opnieuw.' };
 
   const backup = readBackup(JSON.parse(raw));
-  if (!backup?.wines?.length) return { error: 'Er staan geen wijnen in dit bestand.' };
+  if (!backup?.wines.length) return { error: 'Er staan geen wijnen in dit bestand.' };
 
   const { supabase, id } = await cellarId();
   const { data: existing } = await supabase
     .from('wines').select('id, legacy_id, naam, jaar').eq('cellar_id', id).is('deleted_at', null);
 
-  const plan = planImport(backup.wines as LegacyWine[], existing ?? []);
+  const plan = planImport(backup.wines, existing ?? [], backup.soort);
 
   if (plan.nieuw.length) {
     const rows = plan.nieuw.map((w) => ({ ...forInsert(w), cellar_id: id }));
@@ -113,7 +124,7 @@ export async function runImport(_prev: ImportResult, form: FormData): Promise<Im
   }
 
   // Dagboek en verlanglijst gaan mee, ontdubbeld op hun oude id.
-  if (backup.log?.length) {
+  if (backup.log.length) {
     const rows = backup.log
       .filter((e) => e.naam)
       .map((e) => ({
@@ -134,7 +145,7 @@ export async function runImport(_prev: ImportResult, form: FormData): Promise<Im
     }
   }
 
-  if (backup.wishlist?.length) {
+  if (backup.wishlist.length) {
     const rows = backup.wishlist
       .filter((w) => w.naam)
       .map((w) => ({

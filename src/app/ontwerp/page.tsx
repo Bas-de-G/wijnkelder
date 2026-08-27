@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
-import { Masthead } from '../Masthead';
+import { AppHeader } from '../Masthead';
 import { Ledger } from '../Ledger';
+import { TabBar } from '../Nav';
 import { Bars } from '../inzichten/Charts';
+import { AanvulFlow } from '../aanvullen/AanvulFlow';
 import { totals, countBy } from '@/lib/insights';
 import type { Wine, WineType } from '@/lib/types';
 
@@ -40,8 +42,9 @@ export default function OntwerpPage() {
   if (process.env.NODE_ENV === 'production') notFound();
 
   return (
-    <main className="shell">
-      <Masthead tally={{ nu: 4, wachten: 1, voorbij: 2, flessen: 31 }} />
+    <>
+      <AppHeader tally={{ nu: 4, wachten: 1, voorbij: 2, flessen: 31 }} />
+      <main className="shell">
       <Ledger wines={DEMO} />
 
       <div style={{ marginTop: 60 }}>
@@ -71,6 +74,12 @@ export default function OntwerpPage() {
         <Bars titel="Per regio" slices={countBy(DEMO, 'regio', { limit: 8 })} leeg="—" />
         <Bars titel="Per druif" slices={countBy(DEMO, 'druif', { split: true, limit: 8 })} leeg="—" />
       </div>
-    </main>
+
+      <div style={{ marginTop: 60 }}>
+        <AanvulFlow totaal={14} onvolledig={5} />
+      </div>
+      </main>
+      <TabBar />
+    </>
   );
 }

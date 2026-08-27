@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { drinkBadge, drinkProgress, currentYear } from '@/lib/drinkwindow';
 import { parseNote, genericPairing } from '@/lib/sommelier';
 import type { Wine } from '@/lib/types';
-import { Nav } from '../../Nav';
+import { Nav, TabBar } from '../../Nav';
+import { PageHeader } from '../../Masthead';
 import { WineForm } from '../../WineForm';
 import { WineActions } from './WineActions';
 
@@ -25,25 +26,18 @@ export default async function WijnPage({ params }: { params: Promise<{ id: strin
   const progress = drinkProgress(wine, year);
   const sections = parseNote(wine.note);
 
+  const meta = [
+    wine.jaar ? String(wine.jaar) : null,
+    `${wine.aantal} fl.`,
+    wine.drink_from && wine.drink_to && progress
+      ? `${wine.drink_from}–${wine.drink_to} · ${progress.pct}% van het venster`
+      : null,
+  ].filter(Boolean).join('  ·  ');
+
   return (
-    <main className="shell" style={{ maxWidth: 720 }}>
-      <div className="masthead">
-        <h1 className="wordmark" style={{ fontSize: 'clamp(26px, 4.5vw, 38px)' }}>
-          {wine.naam}
-        </h1>
-      </div>
-      <div className="masthead-sub">
-        <span className={`mark ${badge.status}`}>{badge.label}</span>
-        {wine.jaar && <span className="mono" style={{ fontSize: 13, color: 'var(--ink-3)' }}>{wine.jaar}</span>}
-        <span className="mono" style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-          {wine.aantal} fl.
-        </span>
-        {wine.drink_from && wine.drink_to && progress && (
-          <span className="mono" style={{ fontSize: 13, color: 'var(--ink-3)' }}>
-            {wine.drink_from}–{wine.drink_to} · {progress.pct}% van het venster
-          </span>
-        )}
-      </div>
+    <>
+      <PageHeader titel={wine.naam} sub={`${badge.label}  ·  ${meta}`} />
+      <main className="shell" style={{ maxWidth: 720 }}>
       <Nav />
 
       {(sections || wine.note) && (
@@ -81,5 +75,7 @@ export default async function WijnPage({ params }: { params: Promise<{ id: strin
         </div>
       </details>
     </main>
+      <TabBar />
+    </>
   );
 }

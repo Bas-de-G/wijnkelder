@@ -55,6 +55,24 @@ export interface LegacyBackup {
   wines?: LegacyWine[];
   log?: LegacyLog[];
   wishlist?: LegacyWish[];
+  /** Gedeeltelijke aanvulling: werk bestaande wijnen bij, voeg niets toe. */
+  update_wines?: LegacyWine[];
+  /** Gedeeltelijke aanvulling: voeg deze wijnen toe, laat de rest ongemoeid. */
+  add_wines?: LegacyWine[];
+}
+
+/**
+ * Wat voor bestand er is aangeleverd. De aanvulinstructie vraagt Claude om
+ * alleen aan te vullen wat ontbreekt, dus een gedeeltelijke patch is de
+ * gebruikelijke vorm — niet de uitzondering.
+ */
+export type BackupSoort = 'volledig' | 'aanvulling' | 'toevoeging';
+
+export interface GelezenBackup {
+  soort: BackupSoort;
+  wines: LegacyWine[];
+  log: LegacyLog[];
+  wishlist: LegacyWish[];
 }
 
 export interface MappedWine {
@@ -131,12 +149,38 @@ export function mapWine(w: LegacyWine): MappedWine {
   };
 }
 
-/** Herkent zowel {wines:[…]} als een kale array met wijnen. */
-export function readBackup(raw: unknown): LegacyBackup | null {
-  if (Array.isArray(raw)) return { wines: raw as LegacyWine[] };
-  if (raw && typeof raw === 'object') {
-    const o = raw as LegacyBackup;
-    if (Array.isArray(o.wines)) return o;
+/**
+ * Herkent alle vormen waarin een back-up of aanvulling kan binnenkomen:
+ *
+ *   {wines, log, wishlist}   een volledige back-up
+ *   [ … ]                    een kale lijst wijnen, uit een oude export
+ *   {update_wines: [ … ]}    aanvullingen op wijnen die al bestaan
+ *   {add_wines: [ … ]}       wijnen die erbij moeten
+ *
+ * Die laatste twee zijn de vormen die de oorspronkelijke app ook accepteerde.
+ * Ze zijn juist het gebruikelijke antwoord op de aanvulinstructie, want die
+ * vraagt om alleen aan te vullen wat ontbreekt.
+ */
+export function readBackup(raw: unknown): GelezenBackup | null {
+  if (Array.isArray(raw)) {
+    return { soort: 'volledig', wines: raw as LegacyWine[], log: [], wishlist: [] };
+  }
+  if (!raw || typeof raw !== 'object') return null;
+
+  const o = raw as LegacyBackup;
+  if (Array.isArray(o.update_wines)) {
+    return { soort: 'aanvulling', wines: o.update_wines, log: [], wishlist: [] };
+  }
+  if (Array.isArray(o.add_wines)) {
+    return { soort: 'toevoeging', wines: o.add_wines, log: [], wishlist: [] };
+  }
+  if (Array.isArray(o.wines)) {
+    return {
+      soort: 'volledig',
+      wines: o.wines,
+      log: Array.isArray(o.log) ? o.log : [],
+      wishlist: Array.isArray(o.wishlist) ? o.wishlist : [],
+    };
   }
   return null;
 }
@@ -152,6 +196,8 @@ export interface ImportPlan {
   nieuw: MappedWine[];
   bijgewerkt: Array<{ id: string; patch: MappedWine }>;
   ongewijzigd: number;
+  /** Wijnen uit een aanvulling die nergens bij passen; die worden overgeslagen. */
+  onbekend: string[];
 }
 
 const MATCH_FIELDS: Array<keyof MappedWine> = [
@@ -167,15 +213,24 @@ const key = (naam: string, jaar: number | null) =>
  * Matcht eerst op legacy_id, daarna op naam + jaargang — zo levert een back-up
  * van een ander apparaat, met andere id's, alsnog geen duplicaten op.
  */
-export function planImport(incoming: LegacyWine[], existing: ExistingWine[]): ImportPlan {
+export function planImport(
+  incoming: LegacyWine[],
+  existing: ExistingWine[],
+  soort: BackupSoort = 'volledig'
+): ImportPlan {
   const byLegacy = new Map<string, ExistingWine>();
   const byName = new Map<string, ExistingWine>();
+  const byNameOnly = new Map<string, ExistingWine>();
   for (const e of existing) {
     if (e.legacy_id) byLegacy.set(e.legacy_id, e);
     byName.set(key(e.naam, e.jaar), e);
+    // Alleen als de naam eenduidig is; bij twee jaargangen van dezelfde wijn
+    // mag er niet gegokt worden welke bedoeld is.
+    const enkel = e.naam.trim().toLowerCase();
+    byNameOnly.set(enkel, byNameOnly.has(enkel) ? (null as unknown as ExistingWine) : e);
   }
 
-  const plan: ImportPlan = { nieuw: [], bijgewerkt: [], ongewijzigd: 0 };
+  const plan: ImportPlan = { nieuw: [], bijgewerkt: [], ongewijzigd: 0, onbekend: [] };
   const seen = new Set<string>();
 
   for (const row of incoming) {
@@ -186,11 +241,22 @@ export function planImport(incoming: LegacyWine[], existing: ExistingWine[]): Im
     if (seen.has(dedupe)) continue;
     seen.add(dedupe);
 
+    // Bij een aanvulling matcht een wijn zonder jaartal ook op de naam alleen:
+    // Claude laat het jaartal soms weg als het in de export al klopte.
     const match =
       (mapped.legacy_id ? byLegacy.get(mapped.legacy_id) : undefined) ??
-      byName.get(key(mapped.naam, mapped.jaar));
+      byName.get(key(mapped.naam, mapped.jaar)) ??
+      (mapped.jaar == null ? byNameOnly.get(mapped.naam.trim().toLowerCase()) : undefined);
 
     if (!match) {
+      // Een aanvulling hoort niets nieuws aan te maken: staat de wijn er niet,
+      // dan is er iets misgegaan en is stil toevoegen erger dan overslaan.
+      if (soort === 'aanvulling') plan.onbekend.push(mapped.naam);
+      else plan.nieuw.push(mapped);
+      continue;
+    }
+    // Een toevoeging is expliciet bedoeld als nieuwe regel.
+    if (soort === 'toevoeging') {
       plan.nieuw.push(mapped);
       continue;
     }
