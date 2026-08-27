@@ -1,0 +1,618 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Wijnkelder — "kelderregister"
+
+   Een wijnkelder gaat over tijd: flessen die wachten in het donker, een venster
+   dat opengaat en weer sluit. Het register maakt dat zichtbaar. Alle wijnen
+   delen één tijdas, en er loopt één doorlopende lijn voor "nu" verticaal door
+   de hele lijst. Wat links van die lijn ligt is voorbij, wat rechts ligt wacht.
+
+   Letters: Bodoni Moda (de didone van het wijnetiket), Karla voor de interface,
+   DM Mono voor jaartallen en aantallen. Oxbloed is Dennis' kleur, hier gebruikt
+   als lijn en rand in plaats van als vlak.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── TOKENS ────────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  --paper:      #F2F0EA;  /* kalksteen, geen crème */
+  --paper-2:    #FAF9F6;
+  --paper-3:    #E8E4DB;
+  --rule:       #D6D0C4;
+  --rule-soft:  #E4DFD5;
+
+  --ink:        #191416;
+  --ink-2:      #4C4045;
+  --ink-3:      #7A6C70;
+
+  --oxblood:    #8E1038;
+  --oxblood-2:  #B22C55;
+  --oxblood-bg: #F4E4E9;
+  --brass:      #8A6414;
+  --brass-bg:   #F3EBD8;
+  --moss:       #2E6042;
+  --moss-bg:    #E4EDE6;
+
+  --serif:  'Bodoni Moda', 'Didot', 'Bodoni MT', Georgia, serif;
+  --sans:   'Karla', ui-sans-serif, system-ui, sans-serif;
+  --mono:   'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --w-page: 1080px;
+  --w-read: 62ch;
+
+  --lift: 0 1px 1px rgba(25,20,22,.04), 0 10px 28px -18px rgba(142,16,56,.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper:      #131013;
+    --paper-2:    #1C171B;
+    --paper-3:    #262027;
+    --rule:       #3A3037;
+    --rule-soft:  #2A232A;
+    --ink:        #F0EAEA;
+    --ink-2:      #C4B7BB;
+    --ink-3:      #8F8085;
+    --oxblood:    #E4708F;
+    --oxblood-2:  #F0A0B6;
+    --oxblood-bg: #32151F;
+    --brass:      #D2A24C;
+    --brass-bg:   #2C2213;
+    --moss:       #74C193;
+    --moss-bg:    #16281D;
+    --lift: 0 1px 1px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper:      #131013;
+  --paper-2:    #1C171B;
+  --paper-3:    #262027;
+  --rule:       #3A3037;
+  --rule-soft:  #2A232A;
+  --ink:        #F0EAEA;
+  --ink-2:      #C4B7BB;
+  --ink-3:      #8F8085;
+  --oxblood:    #E4708F;
+  --oxblood-2:  #F0A0B6;
+  --oxblood-bg: #32151F;
+  --brass:      #D2A24C;
+  --brass-bg:   #2C2213;
+  --moss:       #74C193;
+  --moss-bg:    #16281D;
+  --lift: 0 1px 1px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+}
+
+/* ── BASIS ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Papierkorrel. Heel licht — je ziet het niet, je voelt het. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) body::before { opacity: .9; mix-blend-mode: screen; }
+}
+:root[data-theme='dark'] body::before { opacity: .9; mix-blend-mode: screen; }
+
+h1, h2, h3 { margin: 0; font-weight: 400; }
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+
+a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* ── TYPOGRAFIE ────────────────────────────────────────────────────────────── */
+.display {
+  font-family: var(--serif);
+  font-weight: 500;
+  letter-spacing: -.02em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+/* Kleinkapitaal-achtig label. Het register is een administratief document;
+   de labels moeten dat uitstralen zonder te schreeuwen. */
+.label {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ── LAYOUT ────────────────────────────────────────────────────────────────── */
+.shell {
+  position: relative;
+  z-index: 1;
+  max-width: var(--w-page);
+  margin: 0 auto;
+  padding: 0 20px 120px;
+}
+
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 40px 0 18px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 2px;
+}
+.masthead-sub {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 14px;
+  margin-bottom: 28px;
+  display: flex;
+  gap: 26px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.wordmark {
+  font-family: var(--serif);
+  font-size: clamp(30px, 5.5vw, 46px);
+  font-weight: 500;
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+.wordmark em {
+  font-style: italic;
+  color: var(--oxblood);
+}
+
+/* Kerncijfers in de kop: getal groot in mono, label eronder. */
+.tally { display: flex; gap: 22px; flex-wrap: wrap; }
+@media (max-width: 560px) { .tally { gap: 14px 18px; } }
+.tally-item { display: flex; flex-direction: column; gap: 1px; }
+.tally-n {
+  font-family: var(--mono);
+  font-size: 21px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.tally-item.alert .tally-n { color: var(--oxblood); }
+.tally-l { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+
+/* ── HET REGISTER ─────────────────────────────────────────────────────────── */
+.ledger { position: relative; }
+
+/* Eén rasterdefinitie voor kop, regels en de overlay met de nu-lijn. Zo kan de
+   lijn nooit uit de pas lopen met de kolom waar hij bij hoort. */
+.ledger { --ledger-grid: 1fr minmax(170px, 340px) 74px; --ledger-gap: 18px; }
+
+/* De doorlopende "nu"-lijn. Dit is het kenmerk van de app: één streep die door
+   alle wijnen heen loopt, op de plek waar dit jaar op de tijdas valt. */
+.ledger-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: var(--ledger-grid);
+  gap: var(--ledger-gap);
+  pointer-events: none;
+  z-index: 2;
+}
+.axis-col { position: relative; }
+.ledger-now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--oxblood);
+  opacity: .5;
+  left: calc(var(--now) * 100%);
+}
+.ledger-now::before {
+  content: 'nu';
+  position: absolute;
+  top: -17px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--sans);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--oxblood);
+  opacity: .85;
+}
+
+.ledger-head {
+  display: grid;
+  grid-template-columns: var(--ledger-grid);
+  gap: var(--ledger-gap);
+  align-items: end;
+  padding: 0 0 7px;
+  border-bottom: 1px solid var(--ink);
+}
+.axis-scale {
+  position: relative;
+  height: 13px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+}
+.axis-tick {
+  position: absolute;
+  bottom: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--ledger-grid);
+  gap: var(--ledger-gap);
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+  animation: rowIn .45s cubic-bezier(.2, .7, .3, 1) both;
+}
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+.row:hover { background: var(--paper-2); }
+.row.past .row-name { color: var(--ink-2); }
+
+.row-main { min-width: 0; }
+.row-name {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -.015em;
+  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.row-vintage {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-3);
+  letter-spacing: 0;
+}
+.row-meta {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.row-meta .sep { opacity: .4; margin: 0 5px; }
+
+/* Het drinkvenster als liniaal in de regel. */
+.window {
+  position: relative;
+  height: 22px;
+}
+.window-track {
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--rule);
+}
+.window-span {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 5px;
+  border-radius: 3px;
+  background: var(--moss);
+  left: calc(var(--from) * 100%);
+  width: calc((var(--to) - var(--from)) * 100%);
+  min-width: 4px;
+  animation: spanIn .5s cubic-bezier(.2, .7, .3, 1) both;
+  animation-delay: .1s;
+}
+@keyframes spanIn { from { transform: translateY(-50%) scaleX(.2); opacity: 0; } to { transform: translateY(-50%) scaleX(1); opacity: 1; } }
+.window-span.waiting { background: var(--brass); }
+.window-span.past    { background: var(--oxblood); opacity: .55; }
+.window-span.closing { background: linear-gradient(90deg, var(--moss), var(--brass)); }
+
+/* Op brede schermen geeft de kop de schaalverdeling en loopt de nu-lijn door alle
+   regels heen. Op smalle schermen bestaat die context niet, dus krijgt elke regel
+   zijn eigen jaartallen en nu-streepje. */
+.window-years,
+.window-now { display: none; }
+
+/* Geen venster bekend: een gestippelde lijn in plaats van een leeg vak, zodat
+   de regel niet stuk oogt. */
+.window-none {
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 0;
+  border-top: 1px dashed var(--rule);
+}
+
+.row-stock {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.row-stock .n { color: var(--ink); font-size: 15px; }
+.row-stock.is-op { color: var(--ink-3); opacity: .6; }
+
+/* ── STATUSMERK ────────────────────────────────────────────────────────────── */
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.mark::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.mark.nu  { color: var(--moss); }
+.mark.wt  { color: var(--brass); }
+.mark.vb  { color: var(--oxblood); }
+.mark.nvt { color: var(--ink-3); }
+
+/* ── KNOPPEN ───────────────────────────────────────────────────────────────── */
+.btn {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  padding: 9px 17px;
+  border-radius: 2px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .16s, color .16s, border-color .16s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:disabled:hover { background: transparent; color: var(--ink); }
+
+.btn-primary { background: var(--oxblood); border-color: var(--oxblood); color: #fff; }
+.btn-primary:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+:root[data-theme='dark'] .btn-primary,
+:root:not([data-theme='light']) .btn-primary { color: #1A0810; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .btn-primary { color: #fff; }
+}
+
+.btn-quiet { border-color: var(--rule); color: var(--ink-2); }
+.btn-quiet:hover { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+
+.btn-sm { font-size: 12px; padding: 6px 12px; }
+
+/* ── FORMULIER ─────────────────────────────────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field > label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.field input, .field select, .field textarea {
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 10px 12px;
+  width: 100%;
+  transition: border-color .16s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--oxblood);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--oxblood-bg);
+}
+.field textarea { min-height: 110px; resize: vertical; line-height: 1.6; }
+.field .hint { font-size: 12px; color: var(--ink-3); }
+.field .mono-input { font-family: var(--mono); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+fieldset {
+  border: none;
+  border-top: 1px solid var(--rule);
+  padding: 22px 0 0;
+  margin: 0 0 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+legend {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--oxblood);
+  padding: 0 10px 0 0;
+}
+
+/* ── PANELEN ───────────────────────────────────────────────────────────────── */
+.panel {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 22px 24px;
+}
+.panel-quiet { background: transparent; border-style: dashed; }
+
+.notice {
+  border-left: 2px solid var(--oxblood);
+  background: var(--oxblood-bg);
+  padding: 13px 17px;
+  font-size: 14px;
+  color: var(--ink-2);
+  border-radius: 0 3px 3px 0;
+}
+.notice.good { border-left-color: var(--moss); background: var(--moss-bg); }
+.notice.warn { border-left-color: var(--brass); background: var(--brass-bg); }
+
+/* Lege staat. Bewust NIET ".empty": die naam botste met de voorraadkolom van een
+   wijn die op is, waardoor die regels 70px padding meekregen. */
+.state-empty {
+  text-align: center;
+  padding: 70px 20px;
+  color: var(--ink-3);
+}
+.state-empty .display { font-size: 25px; color: var(--ink-2); margin-bottom: 10px; }
+
+/* ── NAVIGATIE ─────────────────────────────────────────────────────────────── */
+.nav {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 26px;
+}
+.nav a {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--ink-3);
+  text-decoration: none;
+  padding: 10px 14px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .16s, border-color .16s;
+}
+.nav a:hover { color: var(--ink); }
+.nav a[aria-current='page'] { color: var(--oxblood); border-bottom-color: var(--oxblood); }
+
+/* ── FILTERBALK ────────────────────────────────────────────────────────────── */
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.filters input[type='search'], .filters select {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 8px 12px;
+}
+.filters input[type='search'] { flex: 1 1 220px; min-width: 0; }
+.filters input[type='search']:focus, .filters select:focus {
+  border-color: var(--oxblood);
+  outline: none;
+}
+
+/* ── SMALLE SCHERMEN ───────────────────────────────────────────────────────── */
+/* Op mobiel is een gedeelde tijdas te smal om iets te betekenen. De liniaal
+   verhuist dan onder de naam en wordt per wijn geschaald. */
+@media (max-width: 760px) {
+  .ledger-head { display: none; }
+  .ledger-overlay { display: none; }
+  .row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'main stock' 'window window';
+    gap: 4px 14px;
+    padding: 15px 0;
+  }
+  .row-main { grid-area: main; }
+  .row-stock { grid-area: stock; align-self: start; }
+  .window { grid-area: window; margin-top: 10px; height: 26px; }
+
+  .window-years {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: 13px;
+    left: 0; right: 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .window-now {
+    display: block;
+    position: absolute;
+    top: 2px;
+    height: 9px;
+    width: 1px;
+    background: var(--oxblood);
+    left: calc(var(--now) * 100%);
+  }
+  /* Het streepje staat op elke regel, het woordje eronder maar één keer — dat
+     leest als een legenda in plaats van als herhaling. */
+  .row:first-child .window-now::after {
+    content: 'nu';
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+  .window-track, .window-span, .window-none { top: 7px; }
+  .window-span { transform: none; }
+  @keyframes spanIn { from { transform: scaleX(.2); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+
+  .row-meta { white-space: normal; }
+}
