@@ -922,7 +922,8 @@ body{max-width:var(--max-w);margin:0 auto;position:relative}
     <div class="modal-title" id="confirm-title">Bevestigen</div>
     <div class="modal-sub" id="confirm-msg"></div>
     <div class="modal-actions">
-      <button class="mbtn-del" onclick="confirmAnswer(true)"><i class="material-symbols-outlined" aria-hidden="true">check</i> Doorgaan</button>
+      <button class="mbtn-del" id="confirm-primary" onclick="confirmAnswer(true)"><i class="material-symbols-outlined" aria-hidden="true">check</i> Doorgaan</button>
+      <button class="mbtn-keep" id="confirm-alt" style="display:none" onclick="confirmAnswer('alt')"></button>
       <button class="mbtn-cancel" onclick="confirmAnswer(false)">Annuleer</button>
     </div>
   </div>
@@ -2426,6 +2427,7 @@ async function load() {
       wines = SEED_WINES.slice(); usedSeed = true;
     }
   }
+  normalizeIds();
   if (usedSeed || migratedOld) { saveAll(); } // persist so it's there under the personal key next time too
   try {
     const rp = await Store.get('wijnkelder-prefs');
@@ -2465,7 +2467,7 @@ function renderSyncBanner() {
     detail = 'Dit gebeurt als de app niet als live Claude-artifact draait (bijv. een gedownload of losstaand geopend bestand).';
   } else if (StoreDiag.lastError) {
     reason = 'Cloud-opslag gaf een fout en werkt daardoor nu niet.';
-    detail = 'Foutmelding: ' + StoreDiag.lastError;
+    detail = 'Foutmelding: ' + esc(StoreDiag.lastError);
   } else {
     reason = 'Cloud-opslag is niet actief.';
     detail = 'Onbekende reden.';
@@ -2546,6 +2548,50 @@ function cycleTheme() {
   savePrefs();
   const label = themeMode === 'auto' ? 'Systeeminstelling' : themeMode === 'light' ? 'Licht' : 'Donker';
   toast('Thema: ' + label);
+}
+
+// ── HTML-ESCAPING ──
+// Wijnnamen, notities en regio's komen via innerHTML in de pagina, en sinds de
+// import-functie kunnen ze uit een bestand van buiten komen. Alles wat de gebruiker
+// (of een geïmporteerd bestand) aanlevert moet daarom als tekst behandeld worden,
+// nooit als HTML.
+function esc(v) {
+  if (v === null || v === undefined) return '';
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Zet een id veilig om naar een JS-literal binnen een HTML-attribuut,
+// zodat tekst-id's (UUID's) net zo goed werken als de oude getal-id's.
+function jsAttr(v) { return esc(JSON.stringify(String(v))); }
+
+// ── ID'S ──
+// Tot nu toe was een id Date.now(). Twee records in dezelfde milliseconde kregen
+// daardoor hetzelfde id, en over twee apparaten was uniciteit helemaal niet
+// gegarandeerd. Een UUID lost beide op.
+function newId() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  } catch {}
+  // Terugval voor oudere browsers en contexten waar crypto.randomUUID ontbreekt.
+  const r = () => Math.floor(Math.random() * 0x100000000).toString(16).padStart(8, '0');
+  return r() + '-' + r() + '-' + r() + '-' + r();
+}
+
+// Oude back-ups bevatten getal-id's, nieuwe records tekst-id's. Alles wordt bij het
+// laden en importeren op tekst gezet, zodat de rest van de app niet hoeft te weten
+// uit welke versie een record komt.
+function normalizeIds() {
+  wines.forEach(w => { w.id = w.id != null ? String(w.id) : newId(); });
+  wishlist.forEach(w => { w.id = w.id != null ? String(w.id) : newId(); });
+  dlog.forEach(e => {
+    e.id = e.id != null ? String(e.id) : newId();
+    if (e.wid != null) e.wid = String(e.wid);
+  });
 }
 
 // ── BADGE LOGIC ──
@@ -2629,25 +2675,25 @@ function renderStructuredNote(note) {
     const m = b.match(/^([^:]{1,30}):\s*/);
     return m && NOTE_LABELS.includes(m[1].trim().toLowerCase());
   });
-  if (!isStructured) return `<div class="wc-notes">${note}</div>`;
+  if (!isStructured) return `<div class="wc-notes">${esc(note)}</div>`;
   const sections = blocks.map(b => {
     const m = b.match(/^([^:]{1,30}):\s*([\s\S]*)$/);
     if (m && NOTE_LABELS.includes(m[1].trim().toLowerCase())) {
-      return `<div class="note-section"><span class="note-label">${m[1].trim()}</span><span class="note-body">${m[2].trim()}</span></div>`;
+      return `<div class="note-section"><span class="note-label">${esc(m[1].trim())}</span><span class="note-body">${esc(m[2].trim())}</span></div>`;
     }
-    return `<div class="note-section"><span class="note-body">${b}</span></div>`;
+    return `<div class="note-section"><span class="note-body">${esc(b)}</span></div>`;
   }).join('');
   return `<div class="wc-notes wc-notes-structured">${sections}</div>`;
 }
 
 function buildWineChips(w) {
   return [
-    w.regio ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">location_on</i>${w.regio}</span>` : '',
-    w.druif ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">eco</i>${w.druif}</span>` : '',
-    w.jaar ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">calendar_month</i>${w.jaar}</span>` : '',
-    w.loc ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">stacks</i>${w.loc}</span>` : '',
+    w.regio ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">location_on</i>${esc(w.regio)}</span>` : '',
+    w.druif ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">eco</i>${esc(w.druif)}</span>` : '',
+    w.jaar ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">calendar_month</i>${esc(w.jaar)}</span>` : '',
+    w.loc ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">stacks</i>${esc(w.loc)}</span>` : '',
     w.prijs ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">sell</i>€${parseFloat(w.prijs).toFixed(2)}</span>` : '',
-    w.herkomst && w.herkomst.trim().toLowerCase() !== 'zelf gekocht' ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">redeem</i>${w.herkomst}</span>` : ''
+    w.herkomst && w.herkomst.trim().toLowerCase() !== 'zelf gekocht' ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">redeem</i>${esc(w.herkomst)}</span>` : ''
   ].filter(Boolean).join('');
 }
 
@@ -2656,7 +2702,7 @@ function renderWineCard(w) {
   const n = +w.aantal || 0;
   const isAlert = b.bj || b.bv || b.s === 'vb';
   const isOpen = !collapsedIds.has(w.id);
-  const subParts = [w.type, w.jaar, w.druif].filter(Boolean).join(' · ');
+  const subParts = [w.type, w.jaar, w.druif].filter(Boolean).map(esc).join(' · ');
   const chips = buildWineChips(w);
   const stars = w.sterren ? `<div class="wc-stars">${'★'.repeat(w.sterren)}<span style="color:var(--surface-3)">${'★'.repeat(5 - w.sterren)}</span></div>` : '';
   const pbar = p ? `<div class="dbar-wrap">
@@ -2667,9 +2713,9 @@ function renderWineCard(w) {
   const firstLetter = (w.naam || '#').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   return `<article class="wine-card${isAlert ? ' alert' : ''}" data-letter="${/[A-Z]/.test(firstLetter) ? firstLetter : '#'}" role="listitem">
       <div class="wc-accent ${cc}"></div>
-      <div class="wcc-row" style="cursor:pointer" onclick="toggleExpand(event,${w.id})">
+      <div class="wcc-row" style="cursor:pointer" onclick="toggleExpand(event,${jsAttr(w.id)})">
         <div class="wcc-main">
-          <div class="wcc-name">${w.naam}</div>
+          <div class="wcc-name">${esc(w.naam)}</div>
           <div class="wcc-sub">${subParts}</div>
         </div>
         <span class="bdg ${b.c}"><i class="material-symbols-outlined" aria-hidden="true">${b.icon}</i>${b.t}</span>
@@ -2687,9 +2733,9 @@ function renderWineCard(w) {
             <span class="stock-lbl">Voorraad:</span>
             <span class="stock-num">${n} fl.</span>
           </div>
-          <button class="btn-card btn-drink" onclick="drinkOne(${w.id})"><i class="material-symbols-outlined" aria-hidden="true">local_bar</i> Gedronken</button>
-          <button class="btn-card" onclick="editWine(${w.id})" aria-label="Bewerken"><i class="material-symbols-outlined" aria-hidden="true">edit</i></button>
-          <button class="btn-card btn-del" onclick="deleteWine(${w.id})" aria-label="Verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
+          <button class="btn-card btn-drink" onclick="drinkOne(${jsAttr(w.id)})"><i class="material-symbols-outlined" aria-hidden="true">local_bar</i> Gedronken</button>
+          <button class="btn-card" onclick="editWine(${jsAttr(w.id)})" aria-label="Bewerken"><i class="material-symbols-outlined" aria-hidden="true">edit</i></button>
+          <button class="btn-card btn-del" onclick="deleteWine(${jsAttr(w.id)})" aria-label="Verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
         </div>
       </div>
     </article>`;
@@ -2841,19 +2887,19 @@ function renderWishlist() {
   const s = [...wishlist].sort((a, b) => b.ts - a.ts);
   el.innerHTML = s.map(w => {
     const chips = [
-      w.type ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">wine_bar</i>${w.type}</span>` : '',
-      w.regio ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">location_on</i>${w.regio}</span>` : '',
-      w.druif ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">eco</i>${w.druif}</span>` : '',
+      w.type ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">wine_bar</i>${esc(w.type)}</span>` : '',
+      w.regio ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">location_on</i>${esc(w.regio)}</span>` : '',
+      w.druif ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">eco</i>${esc(w.druif)}</span>` : '',
       w.prijs ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">sell</i>±€${parseFloat(w.prijs).toFixed(2)}</span>` : ''
     ].filter(Boolean).join('');
     return `<div class="log-item">
-      <div class="log-name">${w.naam}</div>
+      <div class="log-name">${esc(w.naam)}</div>
       ${chips ? `<div class="wc-chips" style="margin-top:6px">${chips}</div>` : ''}
-      ${w.note ? `<div class="log-note">${w.note}</div>` : ''}
+      ${w.note ? `<div class="log-note">${esc(w.note)}</div>` : ''}
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
-        <button class="btn-card btn-drink" onclick="buyWishlistItem(${w.id})"><i class="material-symbols-outlined" aria-hidden="true">shopping_cart</i> Gekocht → kelder</button>
-        <button class="btn-card" onclick="editWishlistItem(${w.id})" aria-label="Bewerken"><i class="material-symbols-outlined" aria-hidden="true">edit</i></button>
-        <button class="btn-card btn-del" onclick="deleteWishlistItem(${w.id})" aria-label="Verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
+        <button class="btn-card btn-drink" onclick="buyWishlistItem(${jsAttr(w.id)})"><i class="material-symbols-outlined" aria-hidden="true">shopping_cart</i> Gekocht → kelder</button>
+        <button class="btn-card" onclick="editWishlistItem(${jsAttr(w.id)})" aria-label="Bewerken"><i class="material-symbols-outlined" aria-hidden="true">edit</i></button>
+        <button class="btn-card btn-del" onclick="deleteWishlistItem(${jsAttr(w.id)})" aria-label="Verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
       </div>
     </div>`;
   }).join('');
@@ -2901,7 +2947,7 @@ function addWishlistItem() {
   const naam = (document.getElementById('wl-naam').value || '').trim();
   if (!naam) { toast('Vul minimaal een naam in.'); return; }
   wishlist.push({
-    id: Date.now(),
+    id: newId(),
     naam,
     type: document.getElementById('wl-type').value,
     regio: document.getElementById('wl-regio').value.trim(),
@@ -3085,10 +3131,10 @@ function renderSommResult() {
         const chips = wineInfoChips(w);
         return `<div style="padding:12px 14px;background:var(--surface-2);border-radius:var(--radius-sm);margin-bottom:8px;border-left:2px solid var(--wine-mid)">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
-            <div style="font-family:var(--font-wine);font-size:16px;font-weight:700;color:var(--slate)">${w.naam}${w.jaar ? ' '+w.jaar : ''}${wineStarsSmall(w)}</div>
+            <div style="font-family:var(--font-wine);font-size:16px;font-weight:700;color:var(--slate)">${esc(w.naam)}${w.jaar ? ' '+esc(w.jaar) : ''}${wineStarsSmall(w)}</div>
             ${i === 0 ? '<span style="font-size:10px;font-weight:600;color:var(--wine);text-transform:uppercase;flex-shrink:0">Beste keuze</span>' : ''}
           </div>
-          <div style="font-size:12px;color:var(--slate-muted);margin-top:2px">${w.type}${w.jaar ? ' · ' + w.jaar : ''} · ${b.t}</div>
+          <div style="font-size:12px;color:var(--slate-muted);margin-top:2px">${esc(w.type)}${w.jaar ? ' · ' + esc(w.jaar) : ''} · ${b.t}</div>
           ${chips ? `<div class="wc-chips" style="margin-top:6px">${chips}</div>` : ''}
           ${wineNoteOrFallback(w)}
         </div>`;
@@ -3104,7 +3150,7 @@ function insightBars(dataObj, colorFn) {
   const max = Math.max(...entries.map(e => e[1]), 1);
   return entries.map(([label, val], i) => `
     <div class="bar-row">
-      <div class="bar-label" title="${label}">${label}</div>
+      <div class="bar-label" title="${esc(label)}">${esc(label)}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${Math.max(val / max * 100, 4)}%;background:${colorFn(label, i)}"></div></div>
       <div class="bar-value">${val}</div>
     </div>`).join('');
@@ -3192,7 +3238,7 @@ function renderTimeline() {
     const l = pct(+w.van), wd = Math.max(pct(+w.tm) - l, 2);
     const isOpen = tlExpandedIds.has(w.id);
     h += `<div class="tl-row">
-      <div class="tl-lbl${isOpen ? ' tl-lbl-open' : ''}" title="${w.naam}" onclick="toggleTlLabel(${w.id})">${w.naam}</div>
+      <div class="tl-lbl${isOpen ? ' tl-lbl-open' : ''}" title="${esc(w.naam)}" onclick="toggleTlLabel(${jsAttr(w.id)})">${esc(w.naam)}</div>
       <div class="tl-track">
         <div class="tl-seg" style="left:${l}%;width:${wd}%;background:${col}"></div>
         <div class="tl-now" style="left:${nowP}%"></div>
@@ -3228,20 +3274,20 @@ function renderLog() {
   el.innerHTML = s.map(e => {
     const d = new Date(e.ts).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
     const chips = [
-      e.type ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">wine_bar</i>${e.type}</span>` : '',
-      e.jaar ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">calendar_month</i>${e.jaar}</span>` : '',
-      e.wie ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">group</i>${e.wie}</span>` : '',
-      e.gel ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">celebration</i>${e.gel}</span>` : ''
+      e.type ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">wine_bar</i>${esc(e.type)}</span>` : '',
+      e.jaar ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">calendar_month</i>${esc(e.jaar)}</span>` : '',
+      e.wie ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">group</i>${esc(e.wie)}</span>` : '',
+      e.gel ? `<span class="chip"><i class="material-symbols-outlined" aria-hidden="true">celebration</i>${esc(e.gel)}</span>` : ''
     ].filter(Boolean).join('');
     return `<div class="log-item">
       <div class="log-date">
         <i class="material-symbols-outlined" style="font-size:13px" aria-hidden="true">calendar_month</i>${d}
-        <button class="btn-card btn-del" style="margin-left:auto;padding:4px 9px" onclick="deleteLogEntry(${e.id})" aria-label="Notitie verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
+        <button class="btn-card btn-del" style="margin-left:auto;padding:4px 9px" onclick="deleteLogEntry(${jsAttr(e.id)})" aria-label="Notitie verwijderen"><i class="material-symbols-outlined" aria-hidden="true">delete</i></button>
       </div>
-      <div class="log-name">${e.naam}</div>
+      <div class="log-name">${esc(e.naam)}</div>
       ${chips ? `<div class="wc-chips" style="margin-top:6px">${chips}</div>` : ''}
       ${e.sterren ? `<div class="log-stars">${'★'.repeat(e.sterren)}<span style="color:var(--surface-3)">${'★'.repeat(5 - e.sterren)}</span></div>` : ''}
-      ${e.note ? `<div class="log-note">${e.note}</div>` : ''}
+      ${e.note ? `<div class="log-note">${esc(e.note)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -3274,9 +3320,9 @@ function renderAlerts() {
     return;
   }
   let h = '';
-  if (vb.length) h += `<div class="alert-card danger"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">warning</i> Over hoogtepunt (${vb.length} wijn${vb.length > 1 ? 'en' : ''})</div>${vb.map(w => `<div class="alert-row"><span>${w.naam}${w.jaar ? ' ' + w.jaar : ''}</span><span>${+w.aantal || 1} fl.</span></div>`).join('')}</div>`;
-  if (bv.length) h += `<div class="alert-card warn"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">schedule</i> Bijna over hoogtepunt (binnen ${WARN} jaar)</div>${bv.map(w => `<div class="alert-row"><span>${w.naam}${w.jaar ? ' ' + w.jaar : ''}</span><span>t/m ${w.tm}</span></div>`).join('')}</div>`;
-  if (bj.length) h += `<div class="alert-card warn"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">play_arrow</i> Bijna op dronk (binnen ${WARN} jaar)</div>${bj.map(w => `<div class="alert-row"><span>${w.naam}${w.jaar ? ' ' + w.jaar : ''}</span><span>vanaf ${w.van}</span></div>`).join('')}</div>`;
+  if (vb.length) h += `<div class="alert-card danger"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">warning</i> Over hoogtepunt (${vb.length} wijn${vb.length > 1 ? 'en' : ''})</div>${vb.map(w => `<div class="alert-row"><span>${esc(w.naam)}${w.jaar ? ' ' + esc(w.jaar) : ''}</span><span>${+w.aantal || 1} fl.</span></div>`).join('')}</div>`;
+  if (bv.length) h += `<div class="alert-card warn"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">schedule</i> Bijna over hoogtepunt (binnen ${WARN} jaar)</div>${bv.map(w => `<div class="alert-row"><span>${esc(w.naam)}${w.jaar ? ' ' + esc(w.jaar) : ''}</span><span>t/m ${esc(w.tm)}</span></div>`).join('')}</div>`;
+  if (bj.length) h += `<div class="alert-card warn"><div class="alert-title"><i class="material-symbols-outlined" aria-hidden="true">play_arrow</i> Bijna op dronk (binnen ${WARN} jaar)</div>${bj.map(w => `<div class="alert-row"><span>${esc(w.naam)}${w.jaar ? ' ' + esc(w.jaar) : ''}</span><span>vanaf ${esc(w.van)}</span></div>`).join('')}</div>`;
   el.innerHTML = h;
 }
 
@@ -3338,7 +3384,7 @@ function drinkConfirm(a) {
 }
 
 function addLog(w, wie, gel, note) {
-  dlog.push({ id: Date.now(), wid: w.id, naam: w.naam, type: w.type, jaar: w.jaar, prod: w.prod, sterren: w.sterren, wie: wie.trim(), gel: gel.trim(), note: note.trim(), ts: Date.now() });
+  dlog.push({ id: newId(), wid: w.id, naam: w.naam, type: w.type, jaar: w.jaar, prod: w.prod, sterren: w.sterren, wie: wie.trim(), gel: gel.trim(), note: note.trim(), ts: Date.now() });
 }
 
 // ── WIJN BIJ HET ETEN (regelgebaseerd, geen API nodig) ──
@@ -3439,13 +3485,13 @@ function getWijnAdvies() {
       <button class="btn-card" style="width:100%;justify-content:center;margin-top:8px" onclick="resetWijnAdvies()"><i class="material-symbols-outlined" aria-hidden="true">refresh</i> Opnieuw beginnen</button>`;
     return;
   }
-  box.innerHTML = `<div style="font-size:12px;font-weight:500;color:var(--wine);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Aanbevolen bij "${summary.length > 60 ? summary.slice(0,60)+'…' : summary}"</div>` +
+  box.innerHTML = `<div style="font-size:12px;font-weight:500;color:var(--wine);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Aanbevolen bij "${esc(summary.length > 60 ? summary.slice(0,60)+'…' : summary)}"</div>` +
     top.map(({w}, i) => {
       const b = bdg(w);
       const chips = wineInfoChips(w);
       return `<div style="padding:10px 12px;background:var(--surface-2);border-radius:var(--radius-sm);margin-bottom:6px;border-left:2px solid var(--wine-mid)">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
-          <div style="font-family:var(--font-wine);font-size:15px;font-weight:700;color:var(--slate);letter-spacing:-.01em">${w.naam}${w.jaar ? ' '+w.jaar : ''}${wineStarsSmall(w)} <span style="font-size:12px;font-weight:400;color:var(--slate-muted)">· ${b.t}</span></div>
+          <div style="font-family:var(--font-wine);font-size:15px;font-weight:700;color:var(--slate);letter-spacing:-.01em">${esc(w.naam)}${w.jaar ? ' '+esc(w.jaar) : ''}${wineStarsSmall(w)} <span style="font-size:12px;font-weight:400;color:var(--slate-muted)">· ${b.t}</span></div>
           ${labels[i] ? `<span style="font-size:10px;font-weight:600;color:var(--wine);text-transform:uppercase;letter-spacing:.04em;flex-shrink:0">${labels[i]}</span>` : ''}
         </div>
         ${chips ? `<div class="wc-chips" style="margin-top:6px">${chips}</div>` : ''}
@@ -3482,7 +3528,7 @@ async function saveWine() {
   const naam = (document.getElementById('f-naam').value || '').trim();
   if (!naam) { toast('Vul minimaal een naam in.'); return; }
   const w = {
-    id: editId || Date.now(), naam,
+    id: editId || newId(), naam,
     type: document.getElementById('f-type').value,
     regio: document.getElementById('f-regio').value.trim(),
     druif: document.getElementById('f-druif').value.trim(),
@@ -3564,10 +3610,18 @@ function toast(msg) {
 
 // ── CUSTOM CONFIRM (native confirm() is blocked in this sandboxed environment) ──
 let confirmResolver = null;
-function showConfirm(msg) {
+// Resolvet naar true (hoofdknop), 'alt' (tweede keuze, als opts.altLabel is gegeven)
+// of false (annuleren).
+function showConfirm(msg, opts) {
   return new Promise(resolve => {
     confirmResolver = resolve;
     document.getElementById('confirm-msg').textContent = msg;
+    const primary = document.getElementById('confirm-primary');
+    const alt = document.getElementById('confirm-alt');
+    primary.innerHTML = '<i class="material-symbols-outlined" aria-hidden="true">check</i> ' +
+      esc((opts && opts.okLabel) || 'Doorgaan');
+    if (opts && opts.altLabel) { alt.textContent = opts.altLabel; alt.style.display = ''; }
+    else { alt.style.display = 'none'; }
     document.getElementById('confirm-modal').classList.add('open');
   });
 }
@@ -3602,7 +3656,7 @@ function exportPDF() {
   if (!wines.length) { toast('Geen wijnen om te exporteren.'); return; }
   const rows = wines.map(w => {
     const b = bdg(w);
-    return `<tr><td>${w.naam}</td><td>${w.type}</td><td>${w.prod||''}</td><td>${w.regio||''}</td><td>${w.druif||''}</td><td>${w.jaar||''}</td><td>${w.aantal||1}</td><td>${w.prijs ? '€'+parseFloat(w.prijs).toFixed(2) : ''}</td><td>${w.loc||''}</td><td>${w.herkomst||''}</td><td>${w.van||''}${w.tm ? '–'+w.tm : ''}</td><td>${b.t}</td><td>${'★'.repeat(w.sterren||0)}</td></tr>`;
+    return `<tr><td>${esc(w.naam)}</td><td>${esc(w.type)}</td><td>${esc(w.prod)}</td><td>${esc(w.regio)}</td><td>${esc(w.druif)}</td><td>${esc(w.jaar)}</td><td>${w.aantal||1}</td><td>${w.prijs ? '€'+parseFloat(w.prijs).toFixed(2) : ''}</td><td>${esc(w.loc)}</td><td>${esc(w.herkomst)}</td><td>${esc(w.van)}${w.tm ? '–'+esc(w.tm) : ''}</td><td>${b.t}</td><td>${'★'.repeat(w.sterren||0)}</td></tr>`;
   }).join('');
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Wijnkelder</title>
 <style>@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter&display=swap');
@@ -3623,15 +3677,21 @@ tr:hover td{background:#FAFAF8}
   toast('Bestand gedownload — open het in je browser en druk af als PDF (Ctrl/Cmd+P).');
 }
 
+// Back-ups dragen sinds v2 een versienummer, zodat een importeur weet wat hij binnenkrijgt.
+// De importeur accepteert nog steeds v1 (zonder versieveld) en kale wijn-arrays.
+function backupPayload() {
+  return { version: 2, exportedAt: new Date().toISOString(), wines, log: dlog, wishlist };
+}
+
 function exportJSON() {
   if (!wines.length) { toast('Geen wijnen om te exporteren.'); return; }
-  dl('wijnkelder-backup.json', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({wines, log: dlog, wishlist}, null, 2)));
+  dl('wijnkelder-backup.json', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupPayload(), null, 2)));
   toast('Back-up opgeslagen!');
 }
 
 async function copyJSON() {
   if (!wines.length) { toast('Geen wijnen om te exporteren.'); return; }
-  const text = JSON.stringify({wines, log: dlog, wishlist}, null, 2);
+  const text = JSON.stringify(backupPayload(), null, 2);
   try {
     await navigator.clipboard.writeText(text);
     toast('Back-up gekopieerd! Plak het nu in de chat.');
@@ -3658,14 +3718,14 @@ function exportReadOnlyHTML() {
   const rows = [...wines].sort((a, b) => (a.naam || '').localeCompare(b.naam || '', 'nl', { sensitivity: 'base' })).map(w => {
     const b = bdg(w);
     const statusColor = b.s === 'nu' ? '#15803D' : b.s === 'wt' ? '#B45309' : b.s === 'vb' ? '#DC2626' : '#78716C';
-    const chips = [w.regio, w.druif, w.prod].filter(Boolean).join(' · ');
+    const chips = [w.regio, w.druif, w.prod].filter(Boolean).map(esc).join(' · ');
     return `<div style="background:#fff;border:0.5px solid #E7E0DA;border-radius:14px;padding:14px 16px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
-        <div style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:#1C1917">${w.naam}${w.jaar ? ' ' + w.jaar : ''}</div>
+        <div style="font-family:Georgia,serif;font-size:16px;font-weight:700;color:#1C1917">${esc(w.naam)}${w.jaar ? ' ' + esc(w.jaar) : ''}</div>
         <span style="font-size:11px;font-weight:600;color:${statusColor};flex-shrink:0">${b.t}</span>
       </div>
-      <div style="font-size:12px;color:#78716C;margin-top:2px">${w.type}${chips ? ' · ' + chips : ''}</div>
-      ${w.note ? `<div style="font-size:12px;color:#57534E;margin-top:8px;font-style:italic;line-height:1.5">${w.note}</div>` : ''}
+      <div style="font-size:12px;color:#78716C;margin-top:2px">${esc(w.type)}${chips ? ' · ' + chips : ''}</div>
+      ${w.note ? `<div style="font-size:12px;color:#57534E;margin-top:8px;font-style:italic;line-height:1.5">${esc(w.note)}</div>` : ''}
     </div>`;
   }).join('');
   const totFl = wines.reduce((s, w) => s + (+w.aantal || 1), 0);
@@ -3742,6 +3802,68 @@ function generateCellarQR() {
   }
 }
 
+// ── BACK-UP SAMENVOEGEN ──
+// Importeren verving vroeger de hele kelder. Eén verkeerd bestand kostte dan alles.
+// Nu is samenvoegen de standaard, met een telling vooraf en een automatische
+// veiligheidskopie van de huidige staat vlak voor het schrijven.
+const MERGE_FIELDS = ['naam','type','regio','druif','prod','jaar','aantal','prijs','loc','van','tm','sterren','note','herkomst'];
+
+function wineKey(w) {
+  return (w.naam || '').trim().toLowerCase() + '|' + (w.jaar == null ? '' : String(w.jaar));
+}
+
+// Bepaalt per binnenkomende wijn of hij nieuw is, iets wijzigt, of gelijk is aan wat
+// er al staat. Matcht eerst op id, daarna op naam+jaargang, zodat een back-up van een
+// ander apparaat (met andere id's) niet alsnog duplicaten oplevert.
+function planWineMerge(incoming) {
+  const byId = new Map(wines.map(w => [String(w.id), w]));
+  const byKey = new Map(wines.map(w => [wineKey(w), w]));
+  const plan = { nieuw: 0, bijgewerkt: 0, ongewijzigd: 0, ops: [] };
+  incoming.forEach(inc => {
+    const target = (inc.id != null && byId.get(String(inc.id))) || byKey.get(wineKey(inc)) || null;
+    if (!target) { plan.nieuw++; plan.ops.push({ type: 'add', inc }); return; }
+    const changed = MERGE_FIELDS.some(f =>
+      inc[f] !== undefined && String(inc[f] == null ? '' : inc[f]) !== String(target[f] == null ? '' : target[f]));
+    if (changed) { plan.bijgewerkt++; plan.ops.push({ type: 'update', inc, target }); }
+    else plan.ongewijzigd++;
+  });
+  return plan;
+}
+
+function applyWineMerge(plan) {
+  plan.ops.forEach(op => {
+    if (op.type === 'add') {
+      const w = Object.assign({}, op.inc);
+      w.id = op.inc.id != null ? String(op.inc.id) : newId();
+      wines.push(w);
+    } else {
+      MERGE_FIELDS.forEach(f => { if (op.inc[f] !== undefined) op.target[f] = op.inc[f]; });
+    }
+  });
+}
+
+// Dagboek en verlanglijst kennen geen "bijwerken": een regel bestaat al of niet.
+function mergeById(existing, incoming) {
+  const seen = new Set(existing.map(x => String(x.id)));
+  let added = 0;
+  (incoming || []).forEach(item => {
+    const id = item.id != null ? String(item.id) : newId();
+    if (seen.has(id)) return;
+    seen.add(id);
+    existing.push(Object.assign({}, item, { id }));
+    added++;
+  });
+  return added;
+}
+
+async function backupBeforeImport() {
+  try {
+    await Store.set('wijnkelder-preimport-backup',
+      JSON.stringify({ version: 2, ts: Date.now(), wines, log: dlog, wishlist }), false);
+    return true;
+  } catch (e) { return false; }
+}
+
 function handleImport(e) {
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
@@ -3753,7 +3875,7 @@ function handleImport(e) {
         let updated = 0;
         d.update_wines.forEach(patch => {
           let target = null;
-          if (patch.id != null) target = wines.find(w => w.id === patch.id);
+          if (patch.id != null) target = wines.find(w => String(w.id) === String(patch.id));
           if (!target && patch.naam) target = wines.find(w => w.naam === patch.naam && (!patch.jaar || String(w.jaar) === String(patch.jaar)));
           if (!target) return;
           ['van','tm','note','regio','druif','prod','jaar','type','loc','prijs','sterren','herkomst'].forEach(f => {
@@ -3768,8 +3890,8 @@ function handleImport(e) {
       }
       if (Array.isArray(d.add_wines)) {
         // Add one or more wines to the existing cellar without touching the rest
-        const added = d.add_wines.map((w, i) => ({
-          id: Date.now() + i,
+        const added = d.add_wines.map(w => ({
+          id: newId(),
           naam: w.naam || 'Onbekende wijn',
           type: w.type || 'Rood',
           regio: w.regio || '',
@@ -3791,20 +3913,36 @@ function handleImport(e) {
         toast(added.length === 1 ? '"' + added[0].naam + '" toegevoegd!' : added.length + ' wijnen toegevoegd!');
         return;
       }
-      if (d.wines) {
-        const ok = await showConfirm('Dit vervangt je hele kelder en dagboek door deze back-up. Doorgaan?');
-        if (!ok) return;
-        wines = d.wines; dlog = d.log || []; wishlist = d.wishlist || [];
-      }
-      else if (Array.isArray(d)) {
-        const ok = await showConfirm('Dit vervangt je hele kelder door deze lijst. Doorgaan?');
-        if (!ok) return;
-        wines = d; dlog = [];
+      const isBareList = Array.isArray(d);
+      if (d.wines || isBareList) {
+        const incWines = isBareList ? d : (d.wines || []);
+        const incLog = isBareList ? [] : (d.log || []);
+        const incWish = isBareList ? [] : (d.wishlist || []);
+        const plan = planWineMerge(incWines);
+        const answer = await showConfirm(
+          `Deze back-up bevat ${incWines.length} wijn(en): ${plan.nieuw} nieuw, ${plan.bijgewerkt} bijgewerkt, ${plan.ongewijzigd} ongewijzigd. ` +
+          `Samenvoegen met je huidige kelder (${wines.length} wijnen), of je hele kelder vervangen door deze back-up?`,
+          { okLabel: 'Samenvoegen', altLabel: 'Alles vervangen' }
+        );
+        if (!answer) return;
+        await backupBeforeImport();
+        if (answer === 'alt') {
+          wines = incWines; dlog = incLog; wishlist = incWish;
+          normalizeIds();
+          toast('Kelder vervangen: ' + wines.length + ' wijnen.');
+        } else {
+          applyWineMerge(plan);
+          const logAdded = mergeById(dlog, incLog);
+          const wishAdded = mergeById(wishlist, incWish);
+          normalizeIds();
+          toast(`Samengevoegd: ${plan.nieuw} nieuw, ${plan.bijgewerkt} bijgewerkt` +
+                (logAdded ? `, ${logAdded} dagboekregel(s)` : '') +
+                (wishAdded ? `, ${wishAdded} verlanglijst-item(s)` : '') + '.');
+        }
       }
       else { toast('Ongeldig bestand.'); return; }
-      pw(); pl(); renderList(); updateStats(); renderAlerts(); renderLog(); renderTimeline();
+      pw(); pl(); renderList(); updateStats(); renderAlerts(); renderLog(); renderTimeline(); renderWishlist();
       sw('kelder');
-      toast('Back-up geladen: ' + wines.length + ' wijnen.');
     } catch { toast('Kon bestand niet lezen.'); }
   };
   r.readAsText(f);

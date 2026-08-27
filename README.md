@@ -40,7 +40,20 @@ hij tussen apparaten.
 Maak een back-up via **Export → Back-up downloaden**. Dat JSON-bestand is het migratieformaat
 naar de gehoste versie.
 
+## Tests draaien
+
+De legacy-app heeft een end-to-end controle die de app in een echte browser opent (Chromium via
+Playwright) en de kwetsbare punten narekent: HTML-escaping, unieke id's, en de import die
+samenvoegt in plaats van vervangen.
+
+```
+node tests/legacy.spec.mjs
+```
+
 ## Status
 
-Fase 0 en 1 uit `docs/plan.md` zijn in uitvoering. De gehoste versie (Next.js + Supabase) volgt
-in fase 2.
+- **Fase 0** — repo op orde, baseline vastgelegd. Klaar.
+- **Fase 1** — legacy-app gehard: HTML-escaping, UUID's, samenvoegende import. Klaar.
+- **Fase 2** — gehoste versie op Next.js + Supabase. Nog te doen.
+
+Zie `docs/plan.md` voor de volledige route, inclusief de App Store-analyse.
