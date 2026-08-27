@@ -27,12 +27,19 @@ export function Ledger({ wines }: { wines: Wine[] }) {
   const [q, setQ] = useState('');
   const [type, setType] = useState('');
   const [sort, setSort] = useState<Sort>('naam');
+  // Vervangt het aparte meldingen-tabblad uit de oude app.
+  const [aandacht, setAandacht] = useState(false);
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const out = wines.filter((w) => {
       if (type && w.type !== type) return false;
       if (needle && !haystack(w).includes(needle)) return false;
+      if (aandacht) {
+        if ((w.aantal || 0) === 0) return false;
+        const b = drinkBadge(w, year);
+        if (b.status !== 'vb' && !b.soon && !b.closing) return false;
+      }
       return true;
     });
 
@@ -48,11 +55,23 @@ export function Ledger({ wines }: { wines: Wine[] }) {
       return a.naam.localeCompare(b.naam, 'nl', { sensitivity: 'base' });
     });
     return out;
-  }, [wines, q, type, sort, year]);
+  }, [wines, q, type, sort, aandacht, year]);
 
   // De as wordt over de getoonde selectie gebouwd, zodat inzoomen op één type
   // ook de tijdas laat inzoomen.
   const axis = useMemo(() => buildAxis(shown, year), [shown, year]);
+
+  // Telling voor het aandacht-filter: over hoogtepunt, of binnen twee jaar
+  // beginnend of eindigend.
+  const attentionCount = useMemo(
+    () =>
+      wines.filter((w) => {
+        if ((w.aantal || 0) === 0) return false;
+        const b = drinkBadge(w, year);
+        return b.status === 'vb' || b.soon || b.closing;
+      }).length,
+    [wines, year]
+  );
 
   if (!wines.length) {
     return (
@@ -91,12 +110,23 @@ export function Ledger({ wines }: { wines: Wine[] }) {
             <option key={v} value={v}>{l}</option>
           ))}
         </select>
+        <button
+          className={`chip${aandacht ? ' on' : ''}`}
+          onClick={() => setAandacht(!aandacht)}
+          aria-pressed={aandacht}
+        >
+          Vraagt aandacht{attentionCount > 0 && <span className="chip-n">{attentionCount}</span>}
+        </button>
       </div>
 
       {!shown.length ? (
         <div className="state-empty">
           <p className="display">Niets gevonden</p>
-          <p>Geen wijn in je kelder past bij deze zoekopdracht.</p>
+          <p>
+            {aandacht
+              ? 'Geen enkele fles vraagt op dit moment aandacht. Alles ligt op schema.'
+              : 'Geen wijn in je kelder past bij deze zoekopdracht.'}
+          </p>
         </div>
       ) : (
         <div className="ledger">

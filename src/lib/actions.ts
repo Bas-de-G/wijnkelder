@@ -148,3 +148,77 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect('/inloggen');
 }
+
+/** Een dagboekregel wissen. De wijn zelf blijft staan. */
+export async function deleteLogEntry(id: string) {
+  const { supabase } = await requireCellar();
+  await supabase.from('drink_log').delete().eq('id', id);
+  revalidatePath('/dagboek');
+}
+
+function wishFields(form: FormData) {
+  return {
+    naam: str(form.get('naam')),
+    type: wineType(form.get('type')),
+    regio: str(form.get('regio')),
+    druif: str(form.get('druif')),
+    producent: str(form.get('producent')),
+    richtprijs: money(form.get('richtprijs')),
+    note: str(form.get('note')),
+  };
+}
+
+export async function saveWish(_prev: FormResult, form: FormData): Promise<FormResult> {
+  const f = wishFields(form);
+  if (!f.naam) return { error: 'Vul minimaal een naam in.' };
+
+  const { supabase, cellarId } = await requireCellar();
+  const id = str(form.get('id'));
+
+  const { error } = id
+    ? await supabase.from('wishlist').update(f).eq('id', id)
+    : await supabase.from('wishlist').insert({ ...f, cellar_id: cellarId });
+
+  if (error) return { error: `Opslaan mislukte: ${error.message}` };
+  revalidatePath('/verlanglijst');
+  return {};
+}
+
+export async function deleteWish(id: string) {
+  const { supabase } = await requireCellar();
+  await supabase.from('wishlist').delete().eq('id', id);
+  revalidatePath('/verlanglijst');
+}
+
+/**
+ * Gekocht: het item verhuist naar de kelder en verdwijnt van de verlanglijst.
+ * De richtprijs wordt de aankoopprijs — te corrigeren op de wijnpagina.
+ */
+export async function buyWish(id: string) {
+  const { supabase, cellarId } = await requireCellar();
+
+  const { data: wish } = await supabase
+    .from('wishlist')
+    .select('naam, type, regio, druif, producent, richtprijs, note')
+    .eq('id', id)
+    .single();
+  if (!wish) redirect('/verlanglijst');
+
+  const { error } = await supabase.from('wines').insert({
+    cellar_id: cellarId,
+    naam: wish.naam,
+    type: wish.type,
+    regio: wish.regio,
+    druif: wish.druif,
+    producent: wish.producent,
+    prijs: wish.richtprijs,
+    note: wish.note,
+    aantal: 1,
+  });
+  if (error) redirect('/verlanglijst');
+
+  await supabase.from('wishlist').delete().eq('id', id);
+  revalidatePath('/');
+  revalidatePath('/verlanglijst');
+  redirect('/');
+}

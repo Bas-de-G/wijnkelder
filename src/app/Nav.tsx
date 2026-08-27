@@ -3,9 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+// De tijdlijn uit de oude app zit nu in het register zelf: alle wijnen delen daar
+// één tijdas. Meldingen zijn er het filter "vraagt aandacht". Vandaar geen aparte
+// tabbladen meer voor die twee.
 const ITEMS: Array<[string, string]> = [
   ['/', 'Kelder'],
   ['/toevoegen', 'Toevoegen'],
+  ['/dagboek', 'Dagboek'],
+  ['/inzichten', 'Inzichten'],
+  ['/verlanglijst', 'Verlanglijst'],
   ['/advies', 'Advies'],
   ['/importeren', 'Importeren'],
 ];

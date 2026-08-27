@@ -616,3 +616,197 @@ legend {
 
   .row-meta { white-space: normal; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INZICHTEN
+   Elke balk draagt zijn eigen naam en waarde, dus dit is één meetwaarde over
+   categorieën — één tint, geen categorische kleuren. Gevalideerd op contrast
+   tegen beide ondergronden. Rasterlijnen zijn weggelaten omdat elke waarde al
+   aan de kop van de balk staat.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: var(--rule-soft);
+  border: 1px solid var(--rule-soft);
+  margin-bottom: 34px;
+}
+.stat {
+  background: var(--paper-2);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.stat-n {
+  font-family: var(--mono);
+  font-size: 25px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.stat-n .unit { font-size: 15px; color: var(--ink-3); }
+.stat-l { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.stat-note { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+
+.chart { margin-bottom: 34px; }
+.chart-hd {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ink);
+  margin-bottom: 12px;
+}
+.chart-hd h3 { font-family: var(--serif); font-size: 19px; font-weight: 500; letter-spacing: -.015em; }
+.chart-hd .unit { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+
+.bars { display: flex; flex-direction: column; gap: 9px; }
+.bar-row {
+  display: grid;
+  /* Vaste naamkolom op de langste realistische druifnaam ("Cabernet Sauvignon"),
+     niet een percentage — anders begint de balk op een breed scherm pas een kwart
+     over de pagina. */
+  grid-template-columns: minmax(64px, 152px) 1fr 44px;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+}
+.bar-name {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bar-track { height: 12px; position: relative; }
+.bar-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  /* Vierkant aan de basislijn, afgerond aan de kant waar de waarde eindigt. */
+  border-radius: 0 4px 4px 0;
+  background: var(--oxblood);
+  min-width: 3px;
+  width: calc(var(--pct) * 100%);
+  animation: barIn .5s cubic-bezier(.2, .7, .3, 1) both;
+  transform-origin: left;
+}
+@keyframes barIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.bar-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  text-align: right;
+}
+
+/* Aandeel verschijnt bij aanwijzen; de absolute waarde staat er altijd al. */
+.bar-row::after {
+  content: attr(data-share);
+  position: absolute;
+  right: 46px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--paper-2);
+  background: var(--ink);
+  padding: 2px 6px;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s;
+}
+.bar-row:hover::after, .bar-row:focus-within::after { opacity: 1; }
+
+/* Waar kleur wegvalt — hoog contrast, geforceerde kleuren, afdrukken — draagt
+   arcering het onderscheid tussen de drinkvensterstatussen. */
+@media (prefers-contrast: more), (forced-colors: active), print {
+  .window-span.past {
+    opacity: 1;
+    background-image: repeating-linear-gradient(
+      135deg, transparent 0 3px, rgba(255,255,255,.7) 3px 5px
+    );
+  }
+  .window-span.waiting {
+    background-image: repeating-linear-gradient(
+      45deg, transparent 0 3px, rgba(255,255,255,.55) 3px 5px
+    );
+  }
+}
+
+/* ── DAGBOEK ───────────────────────────────────────────────────────────────── */
+.log-entry {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  animation: rowIn .45s cubic-bezier(.2, .7, .3, 1) both;
+}
+.log-when {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+}
+.log-when .mono { font-size: 11.5px; color: var(--ink-3); letter-spacing: .02em; }
+.log-note {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin-top: 9px;
+  padding-left: 13px;
+  border-left: 1px solid var(--rule);
+}
+
+/* ── VERLANGLIJST ──────────────────────────────────────────────────────────── */
+.wish {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  align-items: start;
+}
+.wish-acts { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+.wish-note { grid-column: 1 / -1; font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+.wish-price {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 560px) {
+  .wish { grid-template-columns: 1fr; }
+  .wish-acts { justify-content: flex-start; }
+}
+
+/* Snelfilter naast de zoekbalk. */
+.chip {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 13px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper-2);
+  color: var(--ink-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: border-color .16s, color .16s, background .16s;
+}
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip.on { border-color: var(--oxblood); color: var(--oxblood); background: var(--oxblood-bg); }
+.chip-n {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: var(--sunken);
+  color: var(--ink-2);
+}
+.chip.on .chip-n { background: var(--oxblood); color: var(--paper-2); }
