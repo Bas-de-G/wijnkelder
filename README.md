@@ -15,6 +15,7 @@ Dit project brengt die app naar een gehoste versie met echte accounts en een dat
 | `legacy/wijnkelder.html` | Dennis' oorspronkelijke app als één bestand. Werkt zonder server. |
 | `docs/opzetten.md` | Wat je eenmalig in Supabase instelt, en hoe je alles nagaat. |
 | `docs/plan.md` | Het migratieplan, inclusief App Store-analyse. |
+| `docs/parity.md` | Wat er uit de oorspronkelijke app is overgenomen, en waar het terechtkwam. |
 | `docs/instructies-voor-claude.md` | De instructie die je aan Claude geeft om wijninformatie te laten aanvullen. |
 | `docs/handleiding.md` | Gebruikshandleiding voor de oude app. |
 
@@ -58,7 +59,7 @@ naar de gehoste versie.
 ## Tests draaien
 
 ```
-npm test              # 136 tests
+npm test              # 187 tests
 npm run test:legacy   # opent de oude app in Chromium, 33 controles
 ```
 
@@ -73,8 +74,8 @@ id's en het volledige importpad.
 
 - **Fase 0** — repo op orde, baseline vastgelegd. Klaar.
 - **Fase 1** — legacy-app gehard: HTML-escaping, UUID's, samenvoegende import. Klaar.
-- **Fase 2** — gehoste versie compleet: schema, accounts, register, toevoegen, dagboek,
-  inzichten, verlanglijst, advies en import. Klaar.
+- **Fase 2** — gehoste versie compleet, met alle functies uit de oorspronkelijke app. Klaar.
+  Zie [`docs/parity.md`](docs/parity.md) voor het overzicht.
 - **Fase 3–4** — deel-links, etiketfoto's, herinneringen, PWA. Nog te doen.
 
 Zie `docs/plan.md` voor de volledige route, inclusief de App Store-analyse.

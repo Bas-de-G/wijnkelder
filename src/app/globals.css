@@ -33,9 +33,11 @@
   --moss:       #2E6042;
   --moss-bg:    #E4EDE6;
 
-  --serif:  'Bodoni Moda', 'Didot', 'Bodoni MT', Georgia, serif;
-  --sans:   'Karla', ui-sans-serif, system-ui, sans-serif;
-  --mono:   'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
+  /* De variabelen komen van next/font (src/app/fonts.ts); de terugval erachter
+     geldt zolang het lettertype nog laadt of niet beschikbaar is. */
+  --serif:  var(--font-serif), 'Didot', 'Bodoni MT', Georgia, serif;
+  --sans:   var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --mono:   var(--font-mono), ui-monospace, 'SFMono-Regular', monospace;
 
   --w-page: 1080px;
   --w-read: 62ch;
@@ -810,3 +812,176 @@ legend {
   color: var(--ink-2);
 }
 .chip.on .chip-n { background: var(--oxblood); color: var(--paper-2); }
+
+/* ── INLOGGEN ──────────────────────────────────────────────────────────────── */
+.auth-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 26px;
+}
+.auth-tab {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 10px 15px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color .16s, border-color .16s;
+}
+.auth-tab:hover { color: var(--ink); }
+.auth-tab.on { color: var(--oxblood); border-bottom-color: var(--oxblood); }
+
+.check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.check input { margin-top: 3px; accent-color: var(--oxblood); }
+
+.linkish {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--oxblood);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── EXPORTEREN & DELEN ────────────────────────────────────────────────────── */
+.downloads {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--rule-soft);
+  border: 1px solid var(--rule-soft);
+}
+.download {
+  background: var(--paper-2);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-decoration: none;
+  transition: background .16s;
+}
+.download:hover { background: var(--sunken); }
+.download-naam {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -.01em;
+}
+.download-uitleg { font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+
+.share {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 18px;
+  align-items: start;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.share-qr {
+  width: 84px;
+  height: 84px;
+  padding: 6px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+.share-qr svg { width: 100%; height: 100%; display: block; }
+.share-main { min-width: 0; }
+.share-url {
+  font-size: 13px;
+  color: var(--oxblood);
+  word-break: break-all;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+@media (max-width: 460px) {
+  .share { grid-template-columns: 1fr; }
+}
+
+/* ── STAP VOOR STAP ────────────────────────────────────────────────────────── */
+.stappen-punten { display: flex; gap: 6px; margin-bottom: 18px; }
+.punt {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--sunken);
+  transition: background .2s;
+}
+.punt.on { background: var(--oxblood); }
+
+.keuze {
+  font-family: var(--sans);
+  font-size: 15px;
+  text-align: left;
+  padding: 14px 17px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper-2);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color .16s, background .16s, transform .12s;
+}
+.keuze:hover {
+  border-color: var(--oxblood);
+  background: var(--oxblood-bg);
+  transform: translateX(2px);
+}
+
+/* ── A–Z SPRINGBALK ────────────────────────────────────────────────────────── */
+/* Zweeft naast het register op brede schermen, en schuift eronder op smalle,
+   waar er geen ruimte naast is. */
+.azbar {
+  position: fixed;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  z-index: 3;
+}
+.azbar button {
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 5px;
+  border: none;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: color .12s, background .12s;
+}
+.azbar button:hover { color: var(--oxblood); background: var(--oxblood-bg); }
+
+@media (max-width: 1180px) {
+  .azbar {
+    position: static;
+    transform: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .azbar button { padding: 5px 8px; font-size: 12px; }
+}
+
+/* De regel waar de springbalk op landt, moet niet onder de kop verdwijnen. */
+.row[data-letter] { scroll-margin-top: 20px; }

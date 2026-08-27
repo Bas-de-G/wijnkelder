@@ -2,7 +2,7 @@
 // woordherkenning, precies zoals in de legacy-app. Dat is bewust: het werkt
 // offline, kost niets, en geeft nooit een verzonnen aanbeveling.
 
-import { NL_STOPWORDS, TYPE_HINTS, SPECIAL_WORDS, GENERIC_PAIRINGS } from './pairing-data';
+import { NL_STOPWORDS, TYPE_HINTS, SPECIAL_WORDS, GENERIC_PAIRINGS, UNUSUAL_GRAPES } from './pairing-data';
 import { drinkBadge, currentYear } from './drinkwindow';
 import type { Wine } from './types';
 
@@ -135,4 +135,106 @@ export function parseNote(note: string | null | undefined): NoteSection[] | null
     const m = labelOf(b);
     return m ? { label: m[1].trim(), body: m[2].trim() } : { label: null, body: b };
   });
+}
+
+// ── STAP VOOR STAP ───────────────────────────────────────────────────────────
+// De vragenreeks uit de oorspronkelijke app. Drie vragen, en dan een keuze uit
+// je eigen kelder. Bewust dezelfde weging, zodat het antwoord niet verandert.
+
+export interface SommVraag {
+  key: 'gelegenheid' | 'eten' | 'stemming';
+  vraag: string;
+  opties: Array<{ label: string; value: string }>;
+}
+
+export const SOMM_VRAGEN: SommVraag[] = [
+  {
+    key: 'gelegenheid',
+    vraag: 'Wat is de gelegenheid?',
+    opties: [
+      { label: 'Doordeweeks, gewoon lekker', value: 'alledaags' },
+      { label: 'Aperitief of borrel', value: 'aperitief' },
+      { label: 'Romantisch diner', value: 'romantisch' },
+      { label: 'Iets te vieren', value: 'speciaal' },
+    ],
+  },
+  {
+    key: 'eten',
+    vraag: 'Wat eet je erbij?',
+    opties: [
+      { label: 'Niets, puur de borrel', value: 'geen' },
+      { label: 'Vis of iets lichts', value: 'vis' },
+      { label: 'Vlees of iets stevigs', value: 'vlees' },
+      { label: 'Kaas of een toetje', value: 'kaas' },
+    ],
+  },
+  {
+    key: 'stemming',
+    vraag: 'Waar heb je zin in?',
+    opties: [
+      { label: 'Fris en luchtig', value: 'fris' },
+      { label: 'Vol en krachtig', value: 'vol' },
+      { label: 'Iets verrassends', value: 'verrassend' },
+    ],
+  },
+];
+
+export type SommAntwoorden = Partial<Record<SommVraag['key'], string>>;
+
+const GELEGENHEID_TYPES: Record<string, string[] | null> = {
+  alledaags: null,
+  aperitief: ['Mousserend', 'Wit'],
+  romantisch: ['Rood', 'Wit', 'Mousserend'],
+  speciaal: null,
+};
+
+const ETEN_TYPES: Record<string, string[] | null> = {
+  geen: ['Mousserend', 'Wit'],
+  vis: ['Wit', 'Rosé'],
+  vlees: ['Rood'],
+  kaas: ['Rood', 'Wit', 'Mousserend'],
+};
+
+const STEMMING_WOORDEN: Record<string, string[]> = {
+  fris: ['fris', 'luchtig', 'licht', 'sappig', 'elegant'],
+  vol: ['vol', 'krachtig', 'stevig', 'robuust', 'geconcentreerd', 'traditioneel'],
+  verrassend: [],
+};
+
+export function sommScore(w: Wine, antwoorden: SommAntwoorden, year?: number): number {
+  const status = drinkBadge(w, year ?? currentYear()).status;
+  let score = status === 'nu' ? 3 : status === 'wt' ? 0 : status === 'vb' ? -1 : 1;
+
+  const gelegenheidTypes = GELEGENHEID_TYPES[antwoorden.gelegenheid ?? ''] ?? null;
+  const etenTypes = ETEN_TYPES[antwoorden.eten ?? ''] ?? null;
+  if (gelegenheidTypes?.includes(w.type)) score += 2;
+  if (etenTypes?.includes(w.type)) score += 2.5;
+
+  const noteWords = tokenize(w.note);
+  for (const woord of STEMMING_WOORDEN[antwoorden.stemming ?? ''] ?? []) {
+    if (containsWord(noteWords, woord)) score += 1.5;
+  }
+
+  if (antwoorden.stemming === 'verrassend') {
+    const druif = (w.druif ?? '').toLowerCase();
+    if (UNUSUAL_GRAPES.some((g) => druif.includes(g))) score += 2.5;
+    if (w.sterren >= 4) score += 1;
+  }
+
+  if (antwoorden.gelegenheid === 'speciaal') {
+    score += (w.sterren || 0) * 0.6 + (w.prijs || 0) / 40;
+  }
+
+  return score;
+}
+
+/** De twee beste flessen voor de gegeven antwoorden, op voorraad. */
+export function sommAdvies(wines: Wine[], antwoorden: SommAntwoorden, year?: number): AdviceHit[] {
+  const labels = ['Beste keuze', 'Ook goed'];
+  return wines
+    .filter((w) => (w.aantal || 0) > 0)
+    .map((w) => ({ wine: w, score: { total: sommScore(w, antwoorden, year), contentScore: 0 } }))
+    .sort((a, b) => b.score.total - a.score.total)
+    .slice(0, 2)
+    .map((s, i) => ({ ...s, label: labels[i] }));
 }

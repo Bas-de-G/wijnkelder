@@ -124,6 +124,42 @@ voorkomende reden dat een verse deploy "niet werkt".
 **5. Controleer het.** Open het Vercel-adres, vraag een inloglink aan, klik hem in je mail. Je
 hoort in een lege kelder te belanden. Ga daarna naar Importeren en neem je back-up over.
 
+## Zolang je nog geen eigen mailversturing hebt
+
+Inloggen gaat met e-mailadres en wachtwoord, dus voor dagelijks gebruik is er geen mail nodig.
+Alleen twee momenten sturen er wel een: het bevestigen van een nieuw account, en het herstellen
+van een vergeten wachtwoord.
+
+Wil je zonder mail kunnen registreren, zet dan **e-mailbevestiging tijdelijk uit**:
+Authentication → Providers → Email → **Confirm email** uit. Een nieuw account is dan meteen
+bruikbaar.
+
+Zet dat weer aan zodra je eigen SMTP hebt. Zonder bevestiging kan iemand zich namelijk
+registreren met het adres van een ander, en dat wil je niet als de app openstaat.
+
+## Eigen mailversturing — nodig vóór je opengaat
+
+Supabase verstuurt inlogmails standaard via zijn eigen mailserver, en die is bedoeld om mee te
+testen, niet om mee te draaien:
+
+| | Ingebouwd | Eigen SMTP |
+|---|---|---|
+| Mails per uur | **2, voor het hele project** | 30 om te beginnen, aanpasbaar |
+| Bedoeld voor | ontwikkelen | productie |
+
+Twee per uur is voor het hele project samen, niet per gebruiker. Met open registratie kunnen er
+dus twee mensen per uur inloggen — en tijdens het testen zit je er zelf ook zo doorheen.
+Daarnaast geldt altijd een wachttijd van 60 seconden tussen twee aanvragen voor hetzelfde
+e-mailadres; die twee limieten worden makkelijk verward.
+
+Zet daarom eigen SMTP aan voordat je anderen uitnodigt: **Authentication → Emails → SMTP
+Settings**. Resend, Postmark, SendGrid en Amazon SES werken allemaal; voor deze omvang zit je bij
+alle vier ruim binnen de gratis tier. Verhoog daarna het aantal onder Authentication → Rate
+Limits, want de standaard 30 per uur is bewust laag gezet.
+
+Verstuur je vanaf een eigen domein, stel dan ook SPF en DKIM in bij je mailprovider — anders
+belandt de inloglink bij een deel van je gebruikers in spam, en dat lijkt op "de app werkt niet".
+
 ## Eigen domein
 
 Voeg het toe onder Settings → Domains in Vercel, en herhaal stap 4 met het nieuwe adres — anders

@@ -13,6 +13,7 @@ const ITEMS: Array<[string, string]> = [
   ['/inzichten', 'Inzichten'],
   ['/verlanglijst', 'Verlanglijst'],
   ['/advies', 'Advies'],
+  ['/exporteren', 'Exporteren'],
   ['/importeren', 'Importeren'],
 ];
 

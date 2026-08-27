@@ -11,10 +11,14 @@ export function WineActions({ wine }: { wine: Wine }) {
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  const laatste = wine.aantal === 1;
+
   if (open) {
     return (
       <form action={action} className="panel">
-        <p className="label" style={{ marginBottom: 14 }}>Fles geopend</p>
+        <p className="label" style={{ marginBottom: 14 }}>
+          {laatste ? 'Laatste fles geopend' : 'Fles geopend'}
+        </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
           <input type="hidden" name="id" value={wine.id} />
           <div className="grid-2">
@@ -32,14 +36,36 @@ export function WineActions({ wine }: { wine: Wine }) {
             <textarea id="log-note" name="note" style={{ minHeight: 80 }} />
           </div>
           {result.error && <div className="notice" role="alert">{result.error}</div>}
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" type="submit" disabled={pending}>
-              {pending ? 'Bezig…' : 'Vastleggen in dagboek'}
-            </button>
-            <button className="btn btn-quiet" type="button" onClick={() => setOpen(false)}>
-              Annuleren
-            </button>
-          </div>
+
+          {laatste ? (
+            <>
+              <p style={{ fontSize: 13.5, color: 'var(--ink-3)', lineHeight: 1.6 }}>
+                Dit was je laatste fles. Wil je de wijn als herinnering laten staan, of uit je
+                kelder halen? Je dagboekregel blijft hoe dan ook bestaan.
+              </p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button className="btn btn-primary" type="submit" name="verwijderen" value="nee"
+                  disabled={pending}>
+                  {pending ? 'Bezig…' : 'Bewaren als herinnering'}
+                </button>
+                <button className="btn" type="submit" name="verwijderen" value="ja" disabled={pending}>
+                  Uit de kelder halen
+                </button>
+                <button className="btn btn-quiet" type="button" onClick={() => setOpen(false)}>
+                  Annuleren
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" type="submit" disabled={pending}>
+                {pending ? 'Bezig…' : 'Vastleggen in dagboek'}
+              </button>
+              <button className="btn btn-quiet" type="button" onClick={() => setOpen(false)}>
+                Annuleren
+              </button>
+            </div>
+          )}
         </div>
       </form>
     );
