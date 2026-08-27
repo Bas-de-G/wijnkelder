@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 const BESTANDEN = [
   { pad: 'xlsx', naam: 'Excel', uitleg: 'Spreadsheet met alle velden en een filterrij' },
@@ -65,9 +66,10 @@ export function Downloads({ leeg }: { leeg: boolean }) {
       </div>
 
       <p style={{ marginTop: 14, fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.6, maxWidth: '62ch' }}>
-        De back-up heeft hetzelfde formaat als dat van de oorspronkelijke app, dus je kunt hem
-        aan Claude geven om druiven, drinkvensters en notities te laten aanvullen, en het
-        resultaat weer importeren.
+        De back-up heeft hetzelfde formaat als dat van de oorspronkelijke app. Wil je druiven,
+        drinkvensters en notities door Claude laten aanvullen, gebruik dan{' '}
+        <Link href="/aanvullen">Aanvullen</Link> — daar staat de opdracht klaar en kun je het
+        antwoord meteen terugplakken.
       </p>
     </section>
   );

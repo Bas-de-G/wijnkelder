@@ -23,7 +23,8 @@ terecht is gekomen.
 | **Export** — PDF | `/exporteren` | Een echte PDF. Het origineel downloadde HTML met het verzoek zelf af te drukken. |
 | **Export** — JSON-back-up | `/exporteren` | Zelfde formaat als het origineel, dus de Claude-aanvulroute blijft werken. |
 | Back-up naar klembord | `/exporteren` | |
-| **Back-up importeren** | `/importeren` | Voegt samen in plaats van te vervangen, met een telling vooraf. |
+| **Back-up importeren** | `/importeren` | Voegt samen in plaats van te vervangen, met een telling vooraf. Accepteert `wines`, een kale lijst, `update_wines` en `add_wines`. |
+| **Aanvullen door Claude** | `/aanvullen` | De drie stappen op één scherm: exporteren, de opdracht kopiëren, het antwoord terugplakken. |
 | Alleen-lezen pagina delen | Deel-link | Een echte URL die actueel blijft en in te trekken is, in plaats van een gedownload bestand dat meteen veroudert. |
 | QR-code | Deel-link | Wijst naar de link. Het origineel propte de kelderinhoud zelf in de code, waardoor die vastliep bij een grote kelder. |
 | Licht/donker thema | Alle schermen | |

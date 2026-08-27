@@ -59,7 +59,7 @@ naar de gehoste versie.
 ## Tests draaien
 
 ```
-npm test              # 187 tests
+npm test              # 216 tests
 npm run test:legacy   # opent de oude app in Chromium, 33 controles
 ```
 

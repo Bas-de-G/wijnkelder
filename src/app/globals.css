@@ -985,3 +985,72 @@ legend {
 
 /* De regel waar de springbalk op landt, moet niet onder de kop verdwijnen. */
 .row[data-letter] { scroll-margin-top: 20px; }
+
+/* ── AANVULRONDE ───────────────────────────────────────────────────────────── */
+.stappenlijst { display: flex; flex-direction: column; gap: 34px; }
+
+.stap {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+.stap-nr {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  background: var(--oxblood);
+  color: #fff;
+  margin-top: 1px;
+}
+:root[data-theme='dark'] .stap-nr,
+:root:not([data-theme='light']) .stap-nr { color: #1A0810; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .stap-nr { color: #fff; }
+}
+
+.stap h2 {
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -.015em;
+  margin-bottom: 6px;
+}
+.stap p { font-size: 14.5px; color: var(--ink-2); line-height: 1.65; max-width: 60ch; }
+
+/* De opdracht staat er voluit, zodat je 'm kunt lezen en niet blind kopieert.
+   Hij past niet in beeld, dus een vervagende onderrand maakt duidelijk dat er
+   nog tekst volgt — anders lijkt het afgekapt. */
+.prompt-wrap { position: relative; }
+.prompt-wrap::after {
+  content: '';
+  position: absolute;
+  left: 2px; right: 0; bottom: 14px;
+  height: 40px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--paper-2));
+  border-radius: 0 0 3px 0;
+}
+.prompt {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--oxblood);
+  border-radius: 0 3px 3px 0;
+  padding: 14px 16px;
+  margin: 14px 0;
+  max-height: 240px;
+  overflow-y: auto;
+  color: var(--ink-2);
+}
+
+@media (max-width: 560px) {
+  .stap { grid-template-columns: 26px 1fr; gap: 12px; }
+  .stap-nr { width: 24px; height: 24px; font-size: 11px; }
+}

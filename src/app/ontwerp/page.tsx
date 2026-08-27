@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Masthead } from '../Masthead';
 import { Ledger } from '../Ledger';
 import { Bars } from '../inzichten/Charts';
+import { AanvulFlow } from '../aanvullen/AanvulFlow';
 import { totals, countBy } from '@/lib/insights';
 import type { Wine, WineType } from '@/lib/types';
 
@@ -70,6 +71,10 @@ export default function OntwerpPage() {
         <Bars titel="Per type" slices={countBy(DEMO, 'type')} leeg="—" />
         <Bars titel="Per regio" slices={countBy(DEMO, 'regio', { limit: 8 })} leeg="—" />
         <Bars titel="Per druif" slices={countBy(DEMO, 'druif', { split: true, limit: 8 })} leeg="—" />
+      </div>
+
+      <div style={{ marginTop: 60 }}>
+        <AanvulFlow totaal={14} onvolledig={5} />
       </div>
     </main>
   );
