@@ -2,13 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { adviseWines, parseNote, genericPairing, type AdviceResult } from '@/lib/sommelier';
+import {
+  adviseWines, parseNote, genericPairing, sommAdvies, SOMM_VRAGEN,
+  type AdviceResult, type AdviceHit, type SommAntwoorden, type SommVraag,
+} from '@/lib/sommelier';
 import { drinkBadge, currentYear } from '@/lib/drinkwindow';
 import type { Wine } from '@/lib/types';
 
 const GEZELSCHAP = ['', 'Alleen', 'Partner', 'Vrienden', 'Familie', 'Zakelijk'];
 
+type Modus = 'vrij' | 'stappen';
+
 export function AdviceForm({ wines }: { wines: Wine[] }) {
+  const [modus, setModus] = useState<Modus>('vrij');
   const [gerecht, setGerecht] = useState('');
   const [gezelschap, setGezelschap] = useState('');
   const [gelegenheid, setGelegenheid] = useState('');
@@ -33,6 +39,23 @@ export function AdviceForm({ wines }: { wines: Wine[] }) {
 
   return (
     <>
+      <div className="auth-tabs" role="tablist" aria-label="Manier van kiezen">
+        <button role="tab" aria-selected={modus === 'vrij'}
+          className={`auth-tab${modus === 'vrij' ? ' on' : ''}`}
+          onClick={() => { setModus('vrij'); setResult(null); }}>
+          Typ zelf
+        </button>
+        <button role="tab" aria-selected={modus === 'stappen'}
+          className={`auth-tab${modus === 'stappen' ? ' on' : ''}`}
+          onClick={() => { setModus('stappen'); setResult(null); }}>
+          Stap voor stap
+        </button>
+      </div>
+
+      {modus === 'stappen' ? (
+        <Stappen wines={wines} />
+      ) : (
+      <>
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 30 }}>
         <div className="field">
           <label htmlFor="gerecht">Wat eet je?</label>
@@ -71,7 +94,103 @@ export function AdviceForm({ wines }: { wines: Wine[] }) {
       </form>
 
       {result && <Result result={result} />}
+      </>
+      )}
     </>
+  );
+}
+
+/** Drie vragen, en dan een fles uit je eigen kelder. */
+function Stappen({ wines }: { wines: Wine[] }) {
+  const [stap, setStap] = useState(0);
+  const [antwoorden, setAntwoorden] = useState<SommAntwoorden>({});
+
+  function kies(key: SommVraag['key'], waarde: string) {
+    setAntwoorden((a) => ({ ...a, [key]: waarde }));
+    setStap((s) => s + 1);
+  }
+
+  function opnieuw() {
+    setStap(0);
+    setAntwoorden({});
+  }
+
+  if (stap >= SOMM_VRAGEN.length) {
+    const hits = sommAdvies(wines, antwoorden);
+    return (
+      <section>
+        <p className="label" style={{ marginBottom: 12 }}>Mijn voorstel</p>
+        <ul style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 20 }}>
+          {hits.map((h) => <Kaart key={h.wine.id} hit={h} />)}
+        </ul>
+        <button className="btn btn-quiet" onClick={opnieuw}>Opnieuw beginnen</button>
+      </section>
+    );
+  }
+
+  const vraag = SOMM_VRAGEN[stap];
+  return (
+    <section>
+      <div className="stappen-punten" aria-hidden="true">
+        {SOMM_VRAGEN.map((_, i) => (
+          <span key={i} className={`punt${i <= stap ? ' on' : ''}`} />
+        ))}
+      </div>
+      <p className="label" style={{ marginBottom: 4 }}>
+        Vraag {stap + 1} van {SOMM_VRAGEN.length}
+      </p>
+      <h2 className="display" style={{ fontSize: 24, marginBottom: 18 }}>{vraag.vraag}</h2>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {vraag.opties.map((o) => (
+          <button key={o.value} className="keuze" onClick={() => kies(vraag.key, o.value)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      {stap > 0 && (
+        <button className="btn btn-quiet btn-sm" style={{ marginTop: 16 }}
+          onClick={() => setStap((s) => Math.max(0, s - 1))}>
+          Vorige vraag
+        </button>
+      )}
+    </section>
+  );
+}
+
+function Kaart({ hit }: { hit: AdviceHit }) {
+  const { wine, label } = hit;
+  const year = currentYear();
+  const badge = drinkBadge(wine, year);
+  const sections = parseNote(wine.note);
+  const lekkerBij = sections?.find((s) => s.label?.toLowerCase() === 'lekker bij');
+  const meta = [wine.type, wine.regio, wine.druif].filter(Boolean).join(' · ');
+
+  return (
+    <li className="panel" style={{ borderRadius: 3 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+        <h3 className="row-name" style={{ fontSize: 21 }}>
+          <Link href={`/wijn/${wine.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+            {wine.naam}
+          </Link>
+          {wine.jaar && <span className="row-vintage">{wine.jaar}</span>}
+        </h3>
+        <span className="label" style={{ color: 'var(--oxblood)' }}>{label}</span>
+      </div>
+      <p className="row-meta" style={{ whiteSpace: 'normal', marginTop: 3 }}>
+        {meta}
+        {meta && <span className="sep">·</span>}
+        <span className={`mark ${badge.status}`} style={{ fontSize: 10.5 }}>{badge.label}</span>
+        <span className="sep">·</span>
+        <span className="mono">{wine.aantal} fl.</span>
+      </p>
+      <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--ink-2)', marginTop: 12 }}>
+        {lekkerBij ? lekkerBij.body
+          : wine.note ? wine.note.split('\n').filter(Boolean)[0]
+          : `Geen eigen notitie — over het algemeen lekker bij ${genericPairing(wine.type)}.`}
+      </p>
+    </li>
   );
 }
 

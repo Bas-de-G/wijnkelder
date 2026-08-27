@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { drinkBadge, currentYear, STATUS_ORDER, type DrinkStatus } from '@/lib/drinkwindow';
 import { buildAxis, windowSpan, tickPosition } from '@/lib/axis';
@@ -14,6 +14,13 @@ const SORT_LABELS: Array<[Sort, string]> = [
   ['voorraad', 'Voorraad'],
   ['toegevoegd', 'Toegevoegd'],
 ];
+
+/** Eerste letter zonder accent; alles wat geen letter is valt onder '#'. */
+function beginletter(naam: string): string {
+  const c = (naam || '#').trim().charAt(0).toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return /[A-Z]/.test(c) ? c : '#';
+}
 
 function haystack(w: Wine) {
   return [w.naam, w.regio, w.druif, w.producent, w.locatie, w.note]
@@ -60,6 +67,19 @@ export function Ledger({ wines }: { wines: Wine[] }) {
   // De as wordt over de getoonde selectie gebouwd, zodat inzoomen op één type
   // ook de tijdas laat inzoomen.
   const axis = useMemo(() => buildAxis(shown, year), [shown, year]);
+
+  // Springbalk: alleen zinvol bij een alfabetische lijst die lang genoeg is om
+  // in te verdwalen.
+  const lijst = useRef<HTMLUListElement>(null);
+  const letters = useMemo(() => {
+    if (sort !== 'naam' || shown.length < 12) return [];
+    return [...new Set(shown.map((w) => beginletter(w.naam)))];
+  }, [shown, sort]);
+
+  const springNaar = useCallback((letter: string) => {
+    const doel = lijst.current?.querySelector<HTMLElement>(`[data-letter="${letter}"]`);
+    doel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   // Telling voor het aandacht-filter: over hoogtepunt, of binnen twee jaar
   // beginnend of eindigend.
@@ -154,11 +174,34 @@ export function Ledger({ wines }: { wines: Wine[] }) {
             <div />
           </div>
 
-          <ul>
+          <ul ref={lijst}>
             {shown.map((w, i) => (
-              <Row key={w.id} wine={w} axis={axis} year={year} index={i} />
+              <Row
+                key={w.id}
+                wine={w}
+                axis={axis}
+                year={year}
+                index={i}
+                letter={
+                  // Alleen de eerste wijn per letter krijgt het merk, zodat de
+                  // springbalk precies bij het begin van de groep uitkomt.
+                  i === 0 || beginletter(shown[i - 1].naam) !== beginletter(w.naam)
+                    ? beginletter(w.naam)
+                    : undefined
+                }
+              />
             ))}
           </ul>
+
+          {letters.length > 1 && (
+            <nav className="azbar" aria-label="Spring naar letter">
+              {letters.map((l) => (
+                <button key={l} onClick={() => springNaar(l)} aria-label={`Spring naar ${l}`}>
+                  {l}
+                </button>
+              ))}
+            </nav>
+          )}
         </div>
       )}
     </>
@@ -170,11 +213,13 @@ function Row({
   axis,
   year,
   index,
+  letter,
 }: {
   wine: Wine;
   axis: ReturnType<typeof buildAxis>;
   year: number;
   index: number;
+  letter?: string;
 }) {
   const badge = drinkBadge(wine, year);
   const span = windowSpan(wine, axis);
@@ -185,6 +230,7 @@ function Row({
   return (
     <li
       className={`row${badge.status === 'vb' ? ' past' : ''}`}
+      data-letter={letter}
       style={{ animationDelay: `${Math.min(index, 18) * 22}ms` }}
     >
       <div className="row-main">

@@ -167,3 +167,57 @@ describe('adviseWines', () => {
     expect(hits).toHaveLength(0);
   });
 });
+
+describe('stap-voor-stap sommelier', () => {
+  it('stelt dezelfde vragen als het origineel', async () => {
+    const { SOMM_VRAGEN } = await import('../src/lib/sommelier');
+    expect(SOMM_VRAGEN.map((v) => v.key)).toEqual(
+      legacy.SOMM_QUESTIONS.map((q: { key: string }) => q.key)
+    );
+    // Even veel keuzes per vraag: een weggevallen optie zou de weging veranderen.
+    expect(SOMM_VRAGEN.map((v) => v.opties.length)).toEqual(
+      legacy.SOMM_QUESTIONS.map((q: { options: unknown[] }) => q.options.length)
+    );
+  });
+
+  it('scoort elke combinatie van antwoorden gelijk aan het origineel', async () => {
+    const { sommScore, SOMM_VRAGEN } = await import('../src/lib/sommelier');
+    const [g, e, s] = SOMM_VRAGEN.map((v) => v.opties.map((o) => o.value));
+
+    for (const gelegenheid of g) {
+      for (const eten of e) {
+        for (const stemming of s) {
+          const antwoorden = { gelegenheid, eten, stemming };
+          for (const wijn of WINES.map(full)) {
+            expect(
+              sommScore(wijn, antwoorden, YEAR),
+              `${wijn.naam} bij ${gelegenheid}/${eten}/${stemming}`
+            ).toBeCloseTo(legacy.sommScore(toLegacy(wijn), antwoorden), 10);
+          }
+        }
+      }
+    }
+  });
+
+  it('kiest dezelfde twee flessen als het origineel', async () => {
+    const { sommAdvies } = await import('../src/lib/sommelier');
+    const wijnen = WINES.map(full);
+    const antwoorden = { gelegenheid: 'speciaal', eten: 'vlees', stemming: 'vol' };
+
+    const hunne = wijnen
+      .filter((w) => w.aantal > 0)
+      .map((w) => ({ naam: w.naam, score: legacy.sommScore(toLegacy(w), antwoorden) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2)
+      .map((x) => x.naam);
+
+    expect(sommAdvies(wijnen, antwoorden, YEAR).map((h) => h.wine.naam)).toEqual(hunne);
+  });
+
+  it('slaat flessen over die op zijn', async () => {
+    const { sommAdvies } = await import('../src/lib/sommelier');
+    const namen = sommAdvies(WINES.map(full), { gelegenheid: 'alledaags', eten: 'vlees', stemming: 'vol' }, YEAR)
+      .map((h) => h.wine.naam);
+    expect(namen).not.toContain('Rioja Reserva');
+  });
+});

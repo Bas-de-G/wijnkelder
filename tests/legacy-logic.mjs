@@ -19,6 +19,9 @@ function slice(startMarker, endMarker) {
 const constants = slice('const NL_STOPWORDS', 'function tokenize');
 const fns = slice('function tokenize', 'function getWijnAdvies');
 const badge = slice('function bdg(w)', 'function colorAccent');
+// De stap-voor-stap sommelier staat elders in het bestand dan het vrije advies.
+const somm = slice('function sommTypePref', 'function renderSommStep');
+const sommVragen = slice('const SOMM_QUESTIONS', 'let sommStep');
 
 const factory = new Function(`
   const YEAR_HOLDER = { year: new Date().getFullYear() };
@@ -27,8 +30,11 @@ const factory = new Function(`
   ${constants}
   ${badge.replace(/\bYEAR\b/g, '__y')}
   ${fns}
-  return { tokenize, containsWord, scoreWine, bdg, prog, setYear: y => { YEAR_HOLDER.year = y; },
-           TYPE_HINTS, NL_STOPWORDS, SPECIAL_WORDS };
+  ${sommVragen}
+  ${somm}
+  return { tokenize, containsWord, scoreWine, bdg, prog, sommScore, sommTypePref,
+           SOMM_QUESTIONS, setYear: y => { YEAR_HOLDER.year = y; },
+           TYPE_HINTS, NL_STOPWORDS, SPECIAL_WORDS, UNUSUAL_GRAPES };
 `);
 
 export const legacy = factory();

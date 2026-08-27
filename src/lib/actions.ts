@@ -48,6 +48,13 @@ async function requireCellar() {
 
 export interface FormResult {
   error?: string;
+  /**
+   * Gevuld als er al een wijn met dezelfde naam en jaargang staat. De wijn is
+   * dan nog niet opgeslagen: het formulier vraagt eerst of het echt een tweede
+   * regel moet worden. Zes flessen van dezelfde wijn horen namelijk op één
+   * regel te staan, niet op zes.
+   */
+  duplicaat?: { naam: string; jaar: number | null; aantal: number };
 }
 
 function fields(form: FormData) {
@@ -86,6 +93,25 @@ export async function saveWine(_prev: FormResult, form: FormData): Promise<FormR
 
   const { supabase, cellarId } = await requireCellar();
   const id = str(form.get('id'));
+
+  // Alleen bij een nieuwe wijn, en alleen als de gebruiker het nog niet bevestigd heeft.
+  if (!id && form.get('bevestigd') !== 'ja') {
+    const zoek = supabase
+      .from('wines')
+      .select('naam, jaar, aantal')
+      .eq('cellar_id', cellarId)
+      .is('deleted_at', null)
+      .ilike('naam', f.naam!)
+      .limit(1);
+
+    // Zonder jaartal matchen we op naam alleen; met jaartal moet ook dat kloppen.
+    const { data: bestaand } = f.jaar == null ? await zoek : await zoek.eq('jaar', f.jaar);
+
+    if (bestaand?.length) {
+      const d = bestaand[0];
+      return { duplicaat: { naam: d.naam, jaar: d.jaar, aantal: d.aantal } };
+    }
+  }
 
   if (id) {
     const { error } = await supabase.from('wines').update(f).eq('id', id);
@@ -134,12 +160,19 @@ export async function drinkBottle(_prev: FormResult, form: FormData): Promise<Fo
   });
   if (logError) return { error: `Kon het dagboek niet bijwerken: ${logError.message}` };
 
-  await supabase
-    .from('wines')
-    .update({ aantal: Math.max(0, (wine.aantal || 1) - 1) })
-    .eq('id', id);
+  const over = Math.max(0, (wine.aantal || 1) - 1);
+
+  // Was dit de laatste fles, dan mag de gebruiker kiezen: de wijn als
+  // herinnering laten staan (nul flessen) of hem uit de kelder halen. Het
+  // dagboek blijft in beide gevallen intact, want dat bewaart de naam apart.
+  if (over === 0 && str(form.get('verwijderen')) === 'ja') {
+    await supabase.from('wines').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  } else {
+    await supabase.from('wines').update({ aantal: over }).eq('id', id);
+  }
 
   revalidatePath('/');
+  revalidatePath('/dagboek');
   redirect('/');
 }
 
@@ -221,4 +254,32 @@ export async function buyWish(id: string) {
   revalidatePath('/');
   revalidatePath('/verlanglijst');
   redirect('/');
+}
+
+// ── DELEN ────────────────────────────────────────────────────────────────────
+// Een deel-link is een token, geen kelder-id: wie de link heeft kan alleen de
+// alleen-lezen projectie zien die shared_cellar() teruggeeft, en die laat prijzen
+// weg. Intrekken zet revoked_at, zodat de link direct dood is zonder dat er iets
+// uit de historie verdwijnt.
+
+function nieuwToken(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 22);
+}
+
+export async function createShare(): Promise<FormResult> {
+  const { supabase, cellarId } = await requireCellar();
+  const { error } = await supabase
+    .from('shares')
+    .insert({ cellar_id: cellarId, token: nieuwToken() });
+  if (error) return { error: `Link maken mislukte: ${error.message}` };
+  revalidatePath('/exporteren');
+  return {};
+}
+
+export async function revokeShare(id: string) {
+  const { supabase } = await requireCellar();
+  await supabase.from('shares').update({ revoked_at: new Date().toISOString() }).eq('id', id);
+  revalidatePath('/exporteren');
 }

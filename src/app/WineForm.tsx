@@ -10,11 +10,15 @@ const EMPTY: FormResult = {};
 export function WineForm({ wine }: { wine?: Wine }) {
   const [result, action, pending] = useActionState(saveWine, EMPTY);
   const [sterren, setSterren] = useState(wine?.sterren ?? 0);
+  // Zodra de gebruiker bevestigt dat het echt een tweede regel moet worden,
+  // gaat dit veld mee en slaat de server de duplicaatcontrole over.
+  const [bevestigd, setBevestigd] = useState(false);
 
   return (
     <form action={action}>
       {wine && <input type="hidden" name="id" value={wine.id} />}
       <input type="hidden" name="sterren" value={sterren} />
+      {bevestigd && <input type="hidden" name="bevestigd" value="ja" />}
 
       <fieldset>
         <legend>Inventaris</legend>
@@ -144,11 +148,44 @@ export function WineForm({ wine }: { wine?: Wine }) {
 
       {result.error && <div className="notice" role="alert" style={{ marginBottom: 18 }}>{result.error}</div>}
 
+      {result.duplicaat && !bevestigd && (
+        <div className="notice warn" role="alert" style={{ marginBottom: 18 }}>
+          <p style={{ marginBottom: 8 }}>
+            <strong>
+              &ldquo;{result.duplicaat.naam}
+              {result.duplicaat.jaar ? ` ${result.duplicaat.jaar}` : ''}&rdquo;
+            </strong>{' '}
+            staat al in je kelder, met {result.duplicaat.aantal}{' '}
+            {result.duplicaat.aantal === 1 ? 'fles' : 'flessen'}.
+          </p>
+          <p style={{ fontSize: 13.5, lineHeight: 1.6 }}>
+            Heb je er flessen bij gekocht? Pas dan het aantal bij die wijn aan in plaats van hem
+            opnieuw toe te voegen — anders staat dezelfde wijn twee keer in je register.
+          </p>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <button className="btn btn-primary" type="submit" disabled={pending}>
-          {pending ? 'Bezig…' : wine ? 'Wijzigingen opslaan' : 'Toevoegen aan kelder'}
-        </button>
-        <Link className="btn btn-quiet" href="/">Annuleren</Link>
+        {result.duplicaat && !bevestigd ? (
+          <>
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={pending}
+              onClick={() => setBevestigd(true)}
+            >
+              Toch als aparte regel toevoegen
+            </button>
+            <Link className="btn btn-quiet" href="/">Naar mijn kelder</Link>
+          </>
+        ) : (
+          <>
+            <button className="btn btn-primary" type="submit" disabled={pending}>
+              {pending ? 'Bezig…' : wine ? 'Wijzigingen opslaan' : 'Toevoegen aan kelder'}
+            </button>
+            <Link className="btn btn-quiet" href="/">Annuleren</Link>
+          </>
+        )}
       </div>
     </form>
   );

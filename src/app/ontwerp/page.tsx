@@ -29,6 +29,11 @@ const DEMO: Wine[] = [
   w('Champagne Brut Nature', 'Mousserend', null, null, null, 2, 'Champagne', 'Pinot Noir'),
   w('Provence Rosé', 'Rosé', 2024, 2025, 2026, 8, 'Provence', 'Cinsault'),
   w('Riesling Kabinett', 'Wit', 2019, 2021, 2035, 5, 'Mosel', 'Riesling'),
+  w('Amarone della Valpolicella', 'Rood', 2017, 2025, 2037, 2, 'Veneto', 'Corvina'),
+  w('Chateauneuf-du-Pape', 'Rood', 2019, 2026, 2038, 3, 'Rhône', 'Grenache, Syrah'),
+  w('Gruner Veltliner', 'Wit', 2022, 2023, 2028, 6, 'Wachau', 'Grüner Veltliner'),
+  w('Vinho Verde', 'Wit', 2024, 2024, 2026, 12, 'Minho', 'Alvarinho'),
+  w('Zinfandel Old Vine', 'Rood', 2020, 2023, 2032, 2, 'Sonoma', 'Zinfandel'),
 ];
 
 export default function OntwerpPage() {
