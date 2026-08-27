@@ -70,3 +70,66 @@ halen. Dat hoort een lege lijst te geven, niet een foutmelding. Dat is het bewij
 
 `/ontwerp` toont het register met voorbeelddata, zodat je aan het ontwerp kunt werken zonder eerst
 een kelder te vullen. Die route bestaat alleen lokaal en geeft in productie een 404.
+
+---
+
+# Online zetten
+
+## Waarom niet GitHub Pages
+
+GitHub Pages serveert alleen statische bestanden. Deze app heeft een server nodig: de kelder
+wordt op de server opgehaald met jouw sessie, opslaan gaat via server actions, en er draait
+middleware die de sessie ververst en pagina's afschermt. Op Pages werkt daarvan niets — je zou
+een lege huls krijgen.
+
+Nodig is dus een host die Node draait. Vercel is de natuurlijke keuze (Next.js komt daar
+vandaan en de gratis tier volstaat ruim), maar Netlify, Cloudflare Workers of een eigen VPS
+kunnen het ook.
+
+## Vercel, stap voor stap
+
+**1. Zorg dat de app op de productiebranch staat.** Vercel bouwt standaard de default branch van
+de repo. Staat de app nog in een pull request, merge die dan eerst — anders deployt Vercel een
+repo zonder app.
+
+**2. Importeer de repo** via [vercel.com/new](https://vercel.com/new). Next.js wordt
+automatisch herkend; build command en output directory hoef je niet aan te passen.
+
+**3. Zet twee omgevingsvariabelen** tijdens de import (of later onder Settings → Environment
+Variables):
+
+| Naam | Waarde |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | je project-URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | je publishable key |
+
+Zet ze voor alle drie de omgevingen (Production, Preview, Development).
+
+`NEXT_PUBLIC_SITE_URL` laat je weg. De app gebruikt dan het adres waarop hij draait, waardoor
+preview-deploys ook werken; met een vaste waarde zouden inloglinks vanuit een preview je naar
+productie sturen.
+
+**4. Voeg het Vercel-adres toe in Supabase**, onder Authentication → URL Configuration:
+
+- **Site URL**: `https://<jouw-project>.vercel.app`
+- **Redirect URLs**: `https://<jouw-project>.vercel.app/auth/bevestigen`
+
+Wil je dat preview-deploys ook werken, voeg dan een regel met een wildcard toe —
+`https://<jouw-project>-*.vercel.app/**`. Controleer in het dashboard of hij geaccepteerd wordt;
+Supabase is streng op de vorm.
+
+Zonder deze stap komt de link uit de inlogmail op een foutmelding uit. Dat is de meest
+voorkomende reden dat een verse deploy "niet werkt".
+
+**5. Controleer het.** Open het Vercel-adres, vraag een inloglink aan, klik hem in je mail. Je
+hoort in een lege kelder te belanden. Ga daarna naar Importeren en neem je back-up over.
+
+## Eigen domein
+
+Voeg het toe onder Settings → Domains in Vercel, en herhaal stap 4 met het nieuwe adres — anders
+blijven inloglinks naar het vercel.app-adres wijzen.
+
+## Let op de voorwaarden
+
+Vercel's gratis Hobby-plan is alleen voor niet-commercieel gebruik. Zolang dit een app voor
+jezelf en vrienden is, zit je goed. Ga je er geld mee verdienen, dan is het betaalde plan nodig.

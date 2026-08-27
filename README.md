@@ -30,7 +30,8 @@ npm run dev
 ```
 
 Eerste keer? Volg [`docs/opzetten.md`](docs/opzetten.md) — het schema moet één keer in Supabase
-gedraaid worden en de inlog-redirect ingesteld.
+gedraaid worden en de inlog-redirect ingesteld. Datzelfde document beschrijft ook hoe je de app
+online zet op Vercel.
 
 ## De legacy-app draaien
 
@@ -57,7 +58,7 @@ naar de gehoste versie.
 ## Tests draaien
 
 ```
-npm test              # 122 tests
+npm test              # 136 tests
 npm run test:legacy   # opent de oude app in Chromium, 33 controles
 ```
 
@@ -72,8 +73,8 @@ id's en het volledige importpad.
 
 - **Fase 0** — repo op orde, baseline vastgelegd. Klaar.
 - **Fase 1** — legacy-app gehard: HTML-escaping, UUID's, samenvoegende import. Klaar.
-- **Fase 2** — gehoste versie: schema, accounts, register, toevoegen, advies, import. Kern staat.
-  Dagboek, tijdlijn, inzichten en verlanglijst volgen nog.
+- **Fase 2** — gehoste versie compleet: schema, accounts, register, toevoegen, dagboek,
+  inzichten, verlanglijst, advies en import. Klaar.
 - **Fase 3–4** — deel-links, etiketfoto's, herinneringen, PWA. Nog te doen.
 
 Zie `docs/plan.md` voor de volledige route, inclusief de App Store-analyse.

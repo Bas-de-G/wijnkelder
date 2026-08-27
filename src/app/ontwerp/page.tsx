@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { Masthead } from '../Masthead';
 import { Ledger } from '../Ledger';
+import { Bars } from '../inzichten/Charts';
+import { totals, countBy } from '@/lib/insights';
 import type { Wine, WineType } from '@/lib/types';
 
 // Alleen tijdens ontwikkelen: het register met voorbeelddata, zodat je aan het
@@ -36,6 +38,34 @@ export default function OntwerpPage() {
     <main className="shell">
       <Masthead tally={{ nu: 4, wachten: 1, voorbij: 2, flessen: 31 }} />
       <Ledger wines={DEMO} />
+
+      <div style={{ marginTop: 60 }}>
+        <div className="stats">
+          <div className="stat">
+            <span className="stat-n">{totals(DEMO).wijnen}</span>
+            <span className="stat-l">Wijnen</span>
+            <span className="stat-note">{totals(DEMO).flessen} flessen in totaal</span>
+          </div>
+          <div className="stat">
+            <span className="stat-n">€ 930</span>
+            <span className="stat-l">Aankoopwaarde</span>
+            <span className="stat-note">alle wijnen hebben een prijs</span>
+          </div>
+          <div className="stat">
+            <span className="stat-n">4<span className="unit"> / 5</span></span>
+            <span className="stat-l">Gemiddeld</span>
+            <span className="stat-note">over 9 beoordeelde wijnen</span>
+          </div>
+          <div className="stat">
+            <span className="stat-n">4</span>
+            <span className="stat-l">Op dronk</span>
+            <span className="stat-note">2 over hoogtepunt</span>
+          </div>
+        </div>
+        <Bars titel="Per type" slices={countBy(DEMO, 'type')} leeg="—" />
+        <Bars titel="Per regio" slices={countBy(DEMO, 'regio', { limit: 8 })} leeg="—" />
+        <Bars titel="Per druif" slices={countBy(DEMO, 'druif', { split: true, limit: 8 })} leeg="—" />
+      </div>
     </main>
   );
 }
