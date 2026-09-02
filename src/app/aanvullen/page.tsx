@@ -16,10 +16,10 @@ export default async function AanvullenPage() {
 
   return (
     <>
-      <PageHeader titel="Laten" cursief="aanvullen"
-        sub="Claude zoekt per wijn de druif op, bepaalt een realistisch drinkvenster en schrijft een notitie met wijnhuis, smaakprofiel en eettips." />
+      <PageHeader titel="Laten" cursief="aanvullen" />
       <main className="shell" style={{ maxWidth: 720 }}>
       <Nav />
+      <p className="inleiding">Claude zoekt per wijn de druif op, bepaalt een realistisch drinkvenster en schrijft een notitie met wijnhuis, smaakprofiel en eettips.</p>
       <AanvulFlow totaal={data.wines.length} onvolledig={onvolledig.length} />
     </main>
       <TabBar />
