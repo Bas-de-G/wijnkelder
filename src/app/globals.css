@@ -35,6 +35,17 @@
   /* Alleen decoratief: het streepje boven een kaart met mousserende wijn. */
   --staal:      #2C5E7A;
 
+  /* De statuskleuren hierboven zijn tekstkleuren: ze halen hun contrast als
+     letters op papier. Als vlak naast elkaar zakken ze door de chroma- en
+     scheidingsdrempels van de validator, dus de balken krijgen eigen stappen.
+     Gecontroleerd met scripts/validate_palette.js uit de dataviz-skill; alleen
+     rood/groen onder deuteranopie haalt het niet, en dat kan geen enkele
+     groen-oranje-rode statusschaal — vandaar dat de status er altijd als woord
+     bij staat. */
+  --vul-nu:      #2F7A4C;
+  --vul-wacht:   #B07E12;
+  --vul-voorbij: #A81440;
+
   /* De variabelen komen van next/font (src/app/fonts.ts); de terugval erachter
      geldt zolang het lettertype nog laadt of niet beschikbaar is. */
   --serif:  var(--font-serif), 'Didot', 'Bodoni MT', Georgia, serif;
@@ -78,6 +89,9 @@
     --moss:       #74C193;
     --moss-bg:    #16281D;
     --staal:      #6FA8C9;
+    --vul-nu:      #3D9B7A;
+    --vul-wacht:   #C07C22;
+    --vul-voorbij: #CE5578;
     --lift: 0 1px 1px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
   }
 }
@@ -100,6 +114,9 @@
   --moss:       #74C193;
   --moss-bg:    #16281D;
   --staal:      #6FA8C9;
+  --vul-nu:      #3D9B7A;
+  --vul-wacht:   #C07C22;
+  --vul-voorbij: #CE5578;
   --lift: 0 1px 1px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
 }
 
@@ -521,11 +538,11 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--moss);
+  background: var(--vul-nu);
   transition: width .3s;
 }
-.venster-vul.wt  { background: var(--brass); }
-.venster-vul.vb  { background: var(--oxblood); }
+.venster-vul.wt  { background: var(--vul-wacht); }
+.venster-vul.vb  { background: var(--vul-voorbij); }
 .venster-vul.nvt { background: var(--ink-3); }
 .venster-leeg { font-size: 12px; color: var(--ink-3); font-style: italic; }
 
@@ -1349,6 +1366,236 @@ legend {
   line-height: 1.65;
   color: var(--ink-2);
   margin-top: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TIJDLIJN
+   De kelder van bovenaf: elk drinkvenster als balkje op één jaarschaal, met
+   één doorlopende lijn voor dit jaar. Dat is wat een lijst niet kan laten zien
+   — welke vensters achter het heden liggen en welke er nog voor staan.
+
+   Kleur draagt de status nooit alleen: de rijen staan gegroepeerd onder een
+   kopje dat de status uitschrijft, er is een legenda, en onder hoog contrast
+   of in druk komt er arcering bij.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* De breedte van de namenkolom. Als variabele, want de nu-lijn moet er precies
+   naast beginnen en dat is dezelfde maat. */
+.tl { --tl-gutter: 108px; --tl-kloof: 10px; }
+@media (min-width: 620px) { .tl { --tl-gutter: 168px; } }
+
+.tl-balk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.tl-telling {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* De liniaal. Blijft staan bij het scrollen, want zonder jaartallen zegt een
+   balkje halverwege de plaat niets. */
+.tl-liniaal {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 26px;
+  margin-left: calc(var(--tl-gutter) + var(--tl-kloof));
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+}
+.tl-jaar {
+  position: absolute;
+  bottom: 5px;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+/* De eerste en laatste duwen we naar binnen, anders steken ze buiten de plaat. */
+.tl-jaar:first-child { transform: none; }
+.tl-jaar:last-child { transform: translateX(-100%); }
+
+.tl-plaat { position: relative; padding-top: 4px; }
+
+/* De nu-lijn ligt over de hele plaat, niet per regel. Deze laag is precies zo
+   breed als de banen, zodat het percentage klopt. */
+.tl-nulaag {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: calc(var(--tl-gutter) + var(--tl-kloof));
+  right: 0;
+  pointer-events: none;
+}
+.tl-nu {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: calc(var(--tl-nu) * 100%);
+  width: 1px;
+  background: var(--oxblood);
+  opacity: .75;
+}
+.tl-nu::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--oxblood);
+}
+
+.tl-groep { margin-bottom: 26px; }
+.tl-groep:last-child { margin-bottom: 0; }
+.tl-groepkop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  color: var(--ink-3);
+}
+/* Het kopje draagt de kleur van de groep, dus het is tegelijk het label bij de
+   balken eronder. */
+.tl-groepkop.nu  { color: var(--moss); }
+.tl-groepkop.wt  { color: var(--brass); }
+.tl-groepkop.vb  { color: var(--oxblood); }
+.tl-groepaantal {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: var(--paper-3);
+  color: var(--ink-3);
+}
+
+.tl-regel { position: relative; }
+
+.tl-rij {
+  width: 100%;
+  display: grid;
+  grid-template-columns: var(--tl-gutter) 1fr;
+  column-gap: var(--tl-kloof);
+  align-items: center;
+  padding: 3px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tl-rij:focus-visible { outline: 2px solid var(--oxblood); outline-offset: 1px; }
+
+.tl-naam {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tl-regel.uit .tl-naam { color: var(--ink); font-weight: 600; }
+
+.tl-baan {
+  position: relative;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--paper-3);
+}
+.tl-blok {
+  position: absolute;
+  top: 0; bottom: 0;
+  border-radius: 3px;
+  min-width: 3px;
+  /* Een randje in de kleur van het papier, zodat twee balken die elkaar bijna
+     raken niet aan elkaar plakken. */
+  box-shadow: 0 0 0 1px var(--paper);
+  animation: blokIn .45s cubic-bezier(.2, .7, .3, 1) both;
+}
+.tl-blok.nu { background: var(--vul-nu); }
+.tl-blok.wt { background: var(--vul-wacht); }
+.tl-blok.vb { background: var(--vul-voorbij); }
+@keyframes blokIn { from { transform: scaleX(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tl-blok { animation: none; } }
+
+.tl-rij:hover .tl-baan { background: var(--rule-soft); }
+
+.tl-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+  margin: 5px 0 9px calc(var(--tl-gutter) + var(--tl-kloof));
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule-soft);
+}
+.tl-detail-naam {
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+  width: 100%;
+}
+.tl-detail-feiten {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-right: auto;
+}
+.tl-detail-feiten .merk { font-size: 10px; }
+.tl-detail .kaartknop { min-height: 30px; padding: 4px 12px; font-size: 12px; }
+
+.tl-legenda {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-soft);
+}
+.tl-legenda li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.tl-vlek { width: 11px; height: 11px; border-radius: 3px; }
+.tl-vlek.nu { background: var(--vul-nu); }
+.tl-vlek.wt { background: var(--vul-wacht); }
+.tl-vlek.vb { background: var(--vul-voorbij); }
+.tl-streep { width: 2px; height: 12px; background: var(--oxblood); border-radius: 1px; }
+
+/* Waar kleur wegvalt, draagt arcering het verschil. De richting verschilt per
+   status, zodat ze ook zwart-wit uit elkaar te houden zijn. */
+@media (prefers-contrast: more), (forced-colors: active), print {
+  .tl-blok.vb, .tl-vlek.vb {
+    background-image: repeating-linear-gradient(
+      135deg, transparent 0 3px, rgba(255,255,255,.7) 3px 5px
+    );
+  }
+  .tl-blok.wt, .tl-vlek.wt {
+    background-image: repeating-linear-gradient(
+      45deg, transparent 0 3px, rgba(255,255,255,.55) 3px 5px
+    );
+  }
 }
 
 /* ── A–Z SPRINGBALK ────────────────────────────────────────────────────────── */

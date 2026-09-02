@@ -59,13 +59,13 @@ naar de gehoste versie.
 ## Tests draaien
 
 ```
-npm test              # 216 tests
+npm test              # 239 tests
 npm run test:legacy   # opent de oude app in Chromium, 33 controles
 ```
 
-`npm test` bevat differentiële tests: het wijnadvies en de drinkvensterberekening worden
-vergeleken met de originele functies uit `legacy/wijnkelder.html`, niet met overgetypte
-verwachtingen. Verandert er iets aan de scoreformule of de woordenlijsten, dan valt dat daar om.
+`npm test` bevat differentiële tests: het wijnadvies, de drinkvensterberekening, de vier cijfers
+in de kop en de tijdlijn worden vergeleken met de originele functies uit `legacy/wijnkelder.html`,
+niet met overgetypte verwachtingen. Verandert er iets aan de scoreformule of de woordenlijsten, dan valt dat daar om.
 
 `npm run test:legacy` opent de oude app in een echte browser en controleert HTML-escaping, unieke
 id's en het volledige importpad.

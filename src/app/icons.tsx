@@ -88,3 +88,7 @@ export const IconGedronken = (p: P) =>
 
 export const IconBewerken = (p: P) =>
   S(<><path d="M4 20h4l10-10-4-4L4 16z" /><path d="M13.5 6.5l4 4" /></>, p);
+
+/** Tijdlijn: drie vensters onder elkaar op één schaal. */
+export const IconTijdlijn = (p: P) =>
+  S(<><path d="M5 7h7M9 12h10M4 17h8" /><path d="M15 3v18" opacity=".45" /></>, p);

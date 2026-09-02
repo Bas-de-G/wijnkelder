@@ -5,6 +5,7 @@ import { TabBar } from '../Nav';
 import { Bars } from '../inzichten/Charts';
 import { AanvulFlow } from '../aanvullen/AanvulFlow';
 import { WijnKern } from '../WineFacts';
+import { Tijdlijn } from '../tijdlijn/Tijdlijn';
 import { AdviceForm } from '../advies/AdviceForm';
 import { totals, countBy, kopCijfers } from '@/lib/insights';
 import type { Wine, WineType } from '@/lib/types';
@@ -79,6 +80,11 @@ export default function OntwerpPage() {
 
       <div style={{ marginTop: 60 }}>
         <AanvulFlow totaal={14} onvolledig={5} />
+      </div>
+
+      <div style={{ marginTop: 60 }}>
+        <p className="inleiding">De tijdlijn.</p>
+        <Tijdlijn wines={DEMO} />
       </div>
 
       <div style={{ marginTop: 60 }}>
