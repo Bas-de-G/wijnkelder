@@ -211,7 +211,16 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   margin: 0 auto;
   padding: 22px 20px 20px;
 }
+/* Elke pagina buiten de kelder krijgt precies dezelfde balk. De titel loopt
+   nooit om — anders is de balk bij "Amarone della Valpolicella" hoger dan bij
+   "Dagboek" en verspringt de pagina eronder zodra je van tabblad wisselt. */
 .kop-slank .kop-binnen { padding-bottom: 22px; }
+.kop-slank .kop-merk {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .kop-rij {
   display: flex;
@@ -560,6 +569,30 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
 
 /* De regel waar de springbalk op landt, moet niet onder de kop verdwijnen. */
 .kaart[data-letter] { scroll-margin-top: 16px; }
+
+/* ── INLEIDING ─────────────────────────────────────────────────────────────── */
+/* De zin die uitlegt waar een scherm voor is. Stond eerst als ondertitel in de
+   donkere balk; daar bepaalde hij de hoogte daarvan mee. */
+.inleiding {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  max-width: 58ch;
+  margin-bottom: 26px;
+}
+
+/* ── KERNGEGEVENS VAN ÉÉN WIJN ─────────────────────────────────────────────── */
+.wijn-kern {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 22px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.wijn-kern-rij { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.wijn-voorraad { font-size: 12px; color: var(--ink-3); }
+.wijn-voorraad b { font-size: 16px; font-weight: 500; color: var(--ink); }
 
 /* ── REGELS IN EEN LIJST ───────────────────────────────────────────────────── */
 /* Gedeelde typografie voor het dagboek, de verlanglijst, het adviesscherm en de

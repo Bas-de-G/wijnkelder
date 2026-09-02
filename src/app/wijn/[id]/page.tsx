@@ -1,12 +1,13 @@
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { drinkBadge, drinkProgress, currentYear } from '@/lib/drinkwindow';
+import { currentYear } from '@/lib/drinkwindow';
 import { parseNote, genericPairing } from '@/lib/sommelier';
 import type { Wine } from '@/lib/types';
 import { Nav, TabBar } from '../../Nav';
 import { PageHeader } from '../../Masthead';
 import { WineForm } from '../../WineForm';
 import { WineActions } from './WineActions';
+import { WijnKern } from '../../WineFacts';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,23 +30,15 @@ export default async function WijnPage({
   const wine = data as Wine;
 
   const year = currentYear();
-  const badge = drinkBadge(wine, year);
-  const progress = drinkProgress(wine, year);
   const sections = parseNote(wine.note);
-
-  const meta = [
-    wine.jaar ? String(wine.jaar) : null,
-    `${wine.aantal} fl.`,
-    wine.drink_from && wine.drink_to && progress
-      ? `${wine.drink_from}–${wine.drink_to} · ${progress.pct}% van het venster`
-      : null,
-  ].filter(Boolean).join('  ·  ');
 
   return (
     <>
-      <PageHeader titel={wine.naam} sub={`${badge.label}  ·  ${meta}`} />
+      <PageHeader titel={wine.naam} />
       <main className="shell" style={{ maxWidth: 720 }}>
       <Nav />
+
+      <WijnKern wine={wine} year={year} />
 
       {(sections || wine.note) && (
         <section className="panel" style={{ marginBottom: 26 }}>

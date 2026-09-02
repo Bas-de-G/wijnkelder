@@ -92,8 +92,14 @@ export function AppHeader({ tally }: { tally: Tally }) {
   );
 }
 
-/** Slankere variant voor de andere schermen. */
-export function PageHeader({ titel, cursief, sub }: { titel: string; cursief?: string; sub?: string }) {
+/**
+ * Slankere variant voor de andere schermen. Bewust zonder ondertitel: die was
+ * op de ene pagina twee regels lang en op de andere afwezig, waardoor de balk
+ * per pagina een andere hoogte kreeg en de hele pagina versprong bij het
+ * wisselen van tabblad. De uitleg staat nu als inleiding in de pagina zelf,
+ * waar hij mag uitlopen zonder de balk te verschuiven.
+ */
+export function PageHeader({ titel, cursief }: { titel: string; cursief?: string }) {
   return (
     <header className="kop kop-slank">
       <div className="kop-binnen">
@@ -106,7 +112,6 @@ export function PageHeader({ titel, cursief, sub }: { titel: string; cursief?: s
             <ThemeToggle />
           </div>
         </div>
-        {sub && <p className="kop-sub">{sub}</p>}
       </div>
     </header>
   );

@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation';
-import { AppHeader } from '../Masthead';
+import { AppHeader, PageHeader } from '../Masthead';
 import { Ledger } from '../Ledger';
 import { TabBar } from '../Nav';
 import { Bars } from '../inzichten/Charts';
 import { AanvulFlow } from '../aanvullen/AanvulFlow';
+import { WijnKern } from '../WineFacts';
 import { AdviceForm } from '../advies/AdviceForm';
 import { totals, countBy, kopCijfers } from '@/lib/insights';
 import type { Wine, WineType } from '@/lib/types';
@@ -81,9 +82,28 @@ export default function OntwerpPage() {
       </div>
 
       <div style={{ marginTop: 60 }}>
+        <p className="inleiding">Zo begint de pagina van één wijn.</p>
+        <WijnKern wine={DEMO[0]} />
+      </div>
+
+      <div style={{ marginTop: 60 }}>
         <AdviceForm wines={DEMO} />
       </div>
       </main>
+
+      {/* Alle balken onder elkaar, zodat te zien is dat ze even hoog zijn. Een
+          verschil hierin laat de hele pagina verspringen bij het wisselen van
+          tabblad — dat was de klacht die deze proef bewaakt. */}
+      <div className="shell" style={{ paddingBottom: 0 }}>
+        <p className="label">Kopbalken — moeten allemaal even hoog zijn</p>
+      </div>
+      <div className="koppenproef">
+        <PageHeader titel="Dagboek" />
+        <PageHeader titel="Inzichten" />
+        <PageHeader titel="Wat drink ik" cursief="vanavond" />
+        <PageHeader titel="Nog te" cursief="proeven" />
+        <PageHeader titel="Amarone della Valpolicella Classico Superiore" />
+      </div>
       <TabBar />
     </>
   );
