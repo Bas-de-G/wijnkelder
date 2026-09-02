@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCellarWithWines } from '@/lib/cellar';
-import { drinkBadge, currentYear } from '@/lib/drinkwindow';
+import { kopCijfers } from '@/lib/insights';
 import { AppHeader } from './Masthead';
 import { Nav, TabBar } from './Nav';
 import { Ledger } from './Ledger';
@@ -13,16 +13,7 @@ export default async function KelderPage() {
   if (!data) redirect('/inloggen');
 
   const { wines } = data;
-  const year = currentYear();
-
-  const tally = { nu: 0, wachten: 0, voorbij: 0, flessen: 0 };
-  for (const w of wines) {
-    const s = drinkBadge(w, year).status;
-    if (s === 'nu') tally.nu++;
-    else if (s === 'wt') tally.wachten++;
-    else if (s === 'vb') tally.voorbij++;
-    tally.flessen += w.aantal || 0;
-  }
+  const tally = kopCijfers(wines);
 
   return (
     <>

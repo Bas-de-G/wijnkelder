@@ -200,7 +200,7 @@ function Kaart({ hit }: { hit: AdviceHit }) {
       <p className="row-meta advies-meta">
         {meta}
         {meta && <span className="sep">·</span>}
-        <span className={`mark ${badge.status}`}>{badge.label}</span>
+        <span className={`merk ${badge.status}`}>{badge.label}</span>
         <span className="sep">·</span>
         <span className="mono">{wine.aantal} fl.</span>
       </p>

@@ -6,9 +6,11 @@ import type { Wine } from '@/lib/types';
 
 const EMPTY: FormResult = {};
 
-export function WineActions({ wine }: { wine: Wine }) {
+export function WineActions({ wine, meteenOpen = false }: { wine: Wine; meteenOpen?: boolean }) {
   const [result, action, pending] = useActionState(drinkBottle, EMPTY);
-  const [open, setOpen] = useState(false);
+  // De kaart in het register linkt hierheen met ?drinken=1, zodat "Gedronken"
+  // daar één tik blijft en het formulier maar op één plek staat.
+  const [open, setOpen] = useState(meteenOpen && wine.aantal > 0);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const laatste = wine.aantal === 1;

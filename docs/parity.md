@@ -7,10 +7,10 @@ terecht is gekomen.
 |---|---|---|
 | **Kelder** — lijst, zoeken, filter op type, sorteren | Register (`/`) | Sorteren op alfabet, drinkvenster, voorraad en toevoegdatum. |
 | A–Z springbalk | Register | Verschijnt bij alfabetisch sorteren vanaf twaalf wijnen. |
-| Uitklapbare kaarten | Detailpagina per wijn | Notities, drinkvenster en acties staan op `/wijn/<id>` in plaats van in de lijst. |
+| Uitklapbare kaarten | Register | Zelfde opbouw als het origineel: kenmerken, sterren, drinkvenster en notitie klappen open onder de naam. De volledige pagina per wijn staat op `/wijn/<id>`. |
 | **Toevoegen** — formulier | `/toevoegen` | |
 | Duplicaatwaarschuwing | `/toevoegen` | Waarschuwt op naam, en bij een ingevuld oogstjaar ook daarop. |
-| **Tijdlijn** — drinkvensters op urgentie | Opgegaan in het register | Alle wijnen delen daar één tijdas, met een doorlopende lijn voor "nu". Een apart tabblad zou hetzelfde tonen. |
+| **Tijdlijn** — drinkvensters op urgentie | Sorteren op "Op dronk" | Groepeert het register op status, met een kopje per groep. Een apart tabblad zou hetzelfde tonen. |
 | **Meldingen** | Filter "vraagt aandacht" | Zit met een teller naast de zoekbalk. |
 | **Dagboek** | `/dagboek` | |
 | Laatste fles: bewaren of verwijderen | Detailpagina | Dezelfde keuze; het dagboek blijft in beide gevallen intact. |
@@ -34,10 +34,18 @@ terecht is gekomen.
 
 - **Accounts.** Inloggen met e-mailadres en wachtwoord, met wachtwoordherstel. Elke kelder is
   afgeschermd op databaseniveau, niet alleen in de interface.
-- **Eén gedeelde tijdas.** Waar het origineel per wijn een voortgangsbalkje toonde, staan alle
-  drinkvensters nu op dezelfde schaal met één doorlopende lijn voor "nu".
 - **Synchronisatie tussen apparaten** zonder back-ups heen en weer te sturen.
 - **Zachte verwijdering.** Een verwijderde wijn is in de database terug te halen.
+
+## Waar we van het origineel zijn afgeweken
+
+- **De vier cijfers in de kop tellen flessen**, net als in het origineel — niet wijnen. De eerste
+  drie tellen samen op tot het totaal, doordat een wijn zonder drinkvenster bij "op dronk" valt.
+  `tests/insights.test.ts` vergelijkt de telling met `updateStats()` uit de oude app zelf.
+- **"Gedronken" op de kaart** opent het dagboekformulier op de pagina van die wijn (`?drinken=1`)
+  in plaats van een aparte dialoog. Zo staat dat formulier op één plek.
+- **Verwijderen staat niet op de kaart.** Dat is onomkeerbaar genoeg om een pagina verder te
+  verdienen.
 
 ## Bewust niet overgenomen
 
