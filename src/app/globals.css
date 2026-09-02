@@ -306,6 +306,9 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
     letter-spacing: .06em;
     white-space: normal;
     line-height: 1.25;
+    /* "Over hoogtepunt" loopt over twee regels, de andere drie niet. Twee
+       regels reserveren houdt de onderrand van de vier vakken gelijk. */
+    min-height: 2.5em;
   }
 }
 
@@ -389,6 +392,9 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   to   { opacity: 1; transform: none; }
 }
 .row:hover { background: var(--paper-2); }
+/* Onder de laatste regel hoort geen streep: die sluit niets af en botst met de
+   lijn boven de springbalk eronder. */
+.ledger ul .row:last-child { border-bottom: none; }
 .row.past .row-name { color: var(--ink-2); }
 
 .row-main { min-width: 0; }
@@ -452,8 +458,11 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
 /* Op brede schermen geeft de kop de schaalverdeling en loopt de nu-lijn door alle
    regels heen. Op smalle schermen bestaat die context niet, dus krijgt elke regel
    zijn eigen jaartallen en nu-streepje. */
-.window-years,
 .window-now { display: none; }
+
+/* Op brede schermen draagt .ledger-head de schaalverdeling; de legenda hieronder
+   is er alleen voor de smalle weergave. */
+.ledger-legenda { display: none; }
 
 /* Geen venster bekend: een gestippelde lijn in plaats van een leeg vak, zodat
    de regel niet stuk oogt. */
@@ -533,6 +542,16 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
 .btn-quiet:hover { border-color: var(--ink); background: var(--ink); color: var(--paper); }
 
 .btn-sm { font-size: 12px; padding: 6px 12px; }
+
+/* Rij knoppen onder een blok tekst. Op een telefoon vallen twee knoppen naast
+   elkaar toch om, elk in hun eigen breedte — dat leest als een trap. Onder
+   elkaar over de volle breedte leest het als een lijst keuzes. */
+.knoprij { display: flex; gap: 10px; flex-wrap: wrap; }
+.knoprij-midden { justify-content: center; }
+@media (max-width: 560px) {
+  .knoprij { flex-direction: column; align-items: stretch; }
+  .knoprij > .btn { width: 100%; justify-content: center; text-align: center; }
+}
 
 /* ── FORMULIER ─────────────────────────────────────────────────────────────── */
 .field { display: flex; flex-direction: column; gap: 5px; }
@@ -644,7 +663,10 @@ legend {
   .nav { display: none; }
   .tabbar { display: grid; }
   .fab { display: flex; }
-  .shell { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 34px); }
+  /* Ruimte voor de balk én voor de plusknop die erboven zweeft: die is 54px
+     hoog en staat 16px van de balk. Met minder ruimte dekt hij de laatste
+     regel van de lijst af. */
+  .shell { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 88px); }
 }
 
 .tabbar {
@@ -805,6 +827,9 @@ legend {
   border-radius: 2px;
   padding: 8px 12px;
 }
+/* Eén hoogte voor alles in de balk: zonder dit staat de aandachtsknop twee
+   pixels lager dan de keuzelijsten — net genoeg om scheef te ogen. */
+.filters input[type='search'], .filters select, .filters .chip { min-height: 38px; }
 .filters input[type='search'] { flex: 1 1 220px; min-width: 0; }
 .filters input[type='search']:focus, .filters select:focus {
   border-color: var(--oxblood);
@@ -832,19 +857,48 @@ legend {
   .row-stock { grid-area: stock; align-self: start; }
   .window { grid-area: window; margin-top: 7px; height: 23px; }
 
-  .row:first-child .window-years {
-    display: flex;
-    justify-content: space-between;
+  /* De schaal hoort één keer boven de lijst en niet in de eerste regel: anders
+     is die regel hoger dan alle andere, en verspringt de hele maatvoering zodra
+     je filtert of sorteert en er een andere wijn bovenaan komt. */
+  .ledger-legenda {
+    display: block;
+    position: relative;
+    height: 22px;
+    margin-bottom: 4px;
+  }
+  .ledger-legenda .jaar {
     position: absolute;
-    top: 12px;
-    left: 0; right: 0;
+    bottom: 0;
     font-family: var(--mono);
     font-size: 9.5px;
+    line-height: 1;
     color: var(--ink-3);
   }
-  /* Alleen de eerste regel draagt de schaal; de rest wordt daardoor compacter. */
-  .row:first-child .window { height: 23px; }
-  .row:not(:first-child) .window { height: 12px; margin-top: 9px; }
+  .ledger-legenda .van { left: 0; }
+  .ledger-legenda .tot { right: 0; }
+  .ledger-legenda .nu {
+    position: absolute;
+    bottom: 0;
+    left: clamp(0%, calc(var(--now) * 100%), 100%);
+    transform: translateX(-50%);
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+
+  /* Elke regel dezelfde hoogte, dus één rustige maat door de hele lijst. */
+  .row .window { height: 12px; margin-top: 7px; }
+
+  /* Binnen een regel mag geen lijn staan die zwaarder is dan de lijn tússen
+     twee regels. Op breed staat de liniaal in een eigen kolom, maar hier loopt
+     hij van rand tot rand: dan leest de zwaarste lijn als scheiding en hoort de
+     balk optisch bij de wijn eronder. Dus omgedraaid, en wat meer lucht onder
+     de balk dan erboven. */
+  .row { border-bottom-color: var(--rule); padding: 13px 0 16px; }
+  .row .window-track { background: var(--rule-soft); }
   .window-now {
     display: block;
     position: absolute;
@@ -853,20 +907,6 @@ legend {
     width: 1px;
     background: var(--oxblood);
     left: calc(var(--now) * 100%);
-  }
-  /* Het streepje staat op elke regel, het woordje eronder maar één keer — dat
-     leest als een legenda in plaats van als herhaling. */
-  .row:first-child .window-now::after {
-    content: 'nu';
-    position: absolute;
-    top: -11px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--oxblood);
   }
   .window-track, .window-span, .window-none { top: 7px; }
   .window-span { transform: none; }
@@ -906,7 +946,15 @@ legend {
 }
 .stat-n .unit { font-size: 15px; color: var(--ink-3); }
 .stat-l { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
-.stat-note { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+.stat-note {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+  margin-top: 2px;
+  /* Zelfde reden als bij de kop: de ene toelichting loopt over twee regels en
+     de andere niet, en dan staan de vakken scheef onder elkaar. */
+  min-height: 2.9em;
+}
 
 .chart { margin-bottom: 34px; }
 .chart-hd {
@@ -1071,7 +1119,7 @@ legend {
   font-variant-numeric: tabular-nums;
   padding: 1px 5px;
   border-radius: 2px;
-  background: var(--sunken);
+  background: var(--paper-3);
   color: var(--ink-2);
 }
 .chip.on .chip-n { background: var(--oxblood); color: var(--paper-2); }
@@ -1137,7 +1185,7 @@ legend {
   text-decoration: none;
   transition: background .16s;
 }
-.download:hover { background: var(--sunken); }
+.download:hover { background: var(--paper-3); }
 .download-naam {
   font-family: var(--serif);
   font-size: 18px;
@@ -1177,11 +1225,14 @@ legend {
 }
 
 /* ── STAP VOOR STAP ────────────────────────────────────────────────────────── */
-.stappen-punten { display: flex; gap: 6px; margin-bottom: 18px; }
+/* Drie segmenten in plaats van drie stippen: als voortgangsbalk lees je in één
+   oogopslag hoe ver je bent, en een stip van 7px viel tegen het papier weg. */
+.stappen-punten { display: flex; gap: 4px; margin-bottom: 16px; }
 .punt {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--sunken);
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--rule);
   transition: background .2s;
 }
 .punt.on { background: var(--oxblood); }
@@ -1202,6 +1253,21 @@ legend {
   border-color: var(--oxblood);
   background: var(--oxblood-bg);
   transform: translateX(2px);
+}
+
+/* ── ADVIESKAART ───────────────────────────────────────────────────────────── */
+/* Vaste opbouw: rang, naam, kenmerken, reden. Elke kaart dezelfde vier regels,
+   ongeacht hoe lang de naam van de wijn is. */
+.advies-kaart { border-radius: 3px; }
+.advies-rang { color: var(--oxblood); margin-bottom: 6px; }
+.advies-naam { font-size: 21px; }
+.advies-meta { white-space: normal; margin-top: 3px; }
+.advies-meta .mark { font-size: 10.5px; }
+.advies-reden {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin-top: 12px;
 }
 
 /* ── A–Z SPRINGBALK ────────────────────────────────────────────────────────── */
@@ -1239,11 +1305,21 @@ legend {
     flex-wrap: wrap;
     gap: 2px;
     justify-content: center;
-    margin-top: 20px;
-    padding-top: 16px;
+    margin-top: 14px;
+    padding-top: 12px;
     border-top: 1px solid var(--rule-soft);
   }
-  .azbar button { padding: 5px 8px; font-size: 12px; }
+  /* Een letter moet een doel zijn dat je met een duim raakt, geen stukje tekst
+     van 12 pixels. */
+  .azbar button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0;
+    font-size: 12.5px;
+  }
 }
 
 /* De regel waar de springbalk op landt, moet niet onder de kop verdwijnen. */
@@ -1334,12 +1410,24 @@ legend {
      de volledige inhoud, dus de overgang valt buiten beeld. */
   .filters {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    /* Drie gelijke kolommen, niet 1fr 1fr auto: anders is de derde knop smaller
+       dan de twee ernaast en loopt de rij zichtbaar scheef af. */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
+    /* Rekken in plaats van centreren, zodat de drie knoppen even hoog worden
+       zonder dat elk van hen zijn eigen hoogte hoeft te kennen. */
+    align-items: stretch;
   }
   .filters input[type='search'] { grid-column: 1 / -1; width: 100%; }
   .filters select { width: 100%; min-width: 0; padding-left: 9px; padding-right: 4px; }
   .chip { min-height: 44px; padding: 8px 11px; gap: 5px; }
+  .filters .chip {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
 
 /* iOS zoomt in op een invoerveld met een letter kleiner dan 16px. */

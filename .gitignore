@@ -16,3 +16,6 @@ test-results/
 npm-debug.log*
 .vercel
 .supabase/
+
+# Wordt door elke build herschreven; hoort niet in de historie.
+tsconfig.tsbuildinfo

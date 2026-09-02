@@ -165,7 +165,7 @@ export function WineForm({ wine }: { wine?: Wine }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      <div className="knoprij">
         {result.duplicaat && !bevestigd ? (
           <>
             <button

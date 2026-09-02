@@ -4,6 +4,7 @@ import { Ledger } from '../Ledger';
 import { TabBar } from '../Nav';
 import { Bars } from '../inzichten/Charts';
 import { AanvulFlow } from '../aanvullen/AanvulFlow';
+import { AdviceForm } from '../advies/AdviceForm';
 import { totals, countBy } from '@/lib/insights';
 import type { Wine, WineType } from '@/lib/types';
 
@@ -77,6 +78,10 @@ export default function OntwerpPage() {
 
       <div style={{ marginTop: 60 }}>
         <AanvulFlow totaal={14} onvolledig={5} />
+      </div>
+
+      <div style={{ marginTop: 60 }}>
+        <AdviceForm wines={DEMO} />
       </div>
       </main>
       <TabBar />

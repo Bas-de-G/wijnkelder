@@ -43,7 +43,7 @@ export function WineActions({ wine }: { wine: Wine }) {
                 Dit was je laatste fles. Wil je de wijn als herinnering laten staan, of uit je
                 kelder halen? Je dagboekregel blijft hoe dan ook bestaan.
               </p>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <div className="knoprij">
                 <button className="btn btn-primary" type="submit" name="verwijderen" value="nee"
                   disabled={pending}>
                   {pending ? 'Bezig…' : 'Bewaren als herinnering'}
@@ -57,7 +57,7 @@ export function WineActions({ wine }: { wine: Wine }) {
               </div>
             </>
           ) : (
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div className="knoprij">
               <button className="btn btn-primary" type="submit" disabled={pending}>
                 {pending ? 'Bezig…' : 'Vastleggen in dagboek'}
               </button>
@@ -72,7 +72,7 @@ export function WineActions({ wine }: { wine: Wine }) {
   }
 
   return (
-    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+    <div className="knoprij">
       <button className="btn btn-primary" onClick={() => setOpen(true)} disabled={wine.aantal === 0}>
         {wine.aantal === 0 ? 'Geen flessen meer' : 'Fles gedronken'}
       </button>

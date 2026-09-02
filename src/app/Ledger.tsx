@@ -101,7 +101,7 @@ export function Ledger({ wines }: { wines: Wine[] }) {
           Voeg je eerste fles toe, of neem je bestaande kelder over uit een back-up van de oude
           app.
         </p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="knoprij knoprij-midden">
           <Link className="btn btn-primary" href="/toevoegen">Wijn toevoegen</Link>
           <Link className="btn btn-quiet" href="/importeren">Back-up importeren</Link>
         </div>
@@ -174,6 +174,15 @@ export function Ledger({ wines }: { wines: Wine[] }) {
               <span className="ledger-now" style={{ ['--now' as string]: axis.now }} />
             </div>
             <div />
+          </div>
+
+          {/* De schaal voor de smalle weergave: één keer boven de lijst, zodat
+              elke regel even hoog blijft. Op brede schermen staat hij in
+              .ledger-head. */}
+          <div className="ledger-legenda" aria-hidden="true">
+            <span className="jaar van">{axis.min}</span>
+            <span className="nu" style={{ ['--now' as string]: axis.now }}>nu</span>
+            <span className="jaar tot">{axis.max}</span>
           </div>
 
           <ul ref={lijst}>
@@ -265,10 +274,6 @@ function Row({
           <span className="window-none" title="Geen drinkvenster ingevuld" />
         )}
         <span className="window-now" style={{ ['--now' as string]: axis.now }} aria-hidden="true" />
-        <span className="window-years" aria-hidden="true">
-          <span>{axis.min}</span>
-          <span>{axis.max}</span>
-        </span>
       </div>
 
       <div className={`row-stock${wine.aantal === 0 ? ' is-op' : ''}`}>

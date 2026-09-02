@@ -146,7 +146,7 @@ function WishForm({ item, onDone }: { item: WishlistItem | null; onDone: () => v
 
         {result.error && <div className="notice" role="alert">{result.error}</div>}
 
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="knoprij">
           <button className="btn btn-primary" type="submit" disabled={pending}>
             {pending ? 'Bezig…' : item ? 'Opslaan' : 'Op het lijstje'}
           </button>

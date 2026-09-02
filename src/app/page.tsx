@@ -31,7 +31,7 @@ export default async function KelderPage() {
         <Nav />
         <Ledger wines={wines} />
         {wines.length > 0 && (
-          <div className="alleen-breed" style={{ marginTop: 26, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div className="alleen-breed knoprij" style={{ marginTop: 26 }}>
             <Link className="btn btn-primary" href="/toevoegen">Wijn toevoegen</Link>
             <Link className="btn btn-quiet" href="/advies">Wat drink ik vanavond?</Link>
           </div>
