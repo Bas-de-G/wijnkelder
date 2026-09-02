@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { signOut } from '@/lib/actions';
 import {
-  IconKelder, IconPlus, IconDagboek, IconInzichten, IconAdvies,
+  IconKelder, IconPlus, IconTijdlijn, IconDagboek, IconInzichten, IconAdvies,
   IconVerlanglijst, IconAanvullen, IconExporteren, IconImporteren,
   IconMeer, IconUit, IconSluit,
 } from './icons';
@@ -17,6 +17,7 @@ type Item = { href: string; label: string; Icon: (p: { className?: string }) => 
 // tabbladen meer voor die twee.
 const HOOFD: Item[] = [
   { href: '/', label: 'Kelder', Icon: IconKelder },
+  { href: '/tijdlijn', label: 'Tijdlijn', Icon: IconTijdlijn },
   { href: '/dagboek', label: 'Dagboek', Icon: IconDagboek },
   { href: '/inzichten', label: 'Inzichten', Icon: IconInzichten },
   { href: '/advies', label: 'Advies', Icon: IconAdvies },

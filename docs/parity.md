@@ -10,7 +10,7 @@ terecht is gekomen.
 | Uitklapbare kaarten | Register | Zelfde opbouw als het origineel: kenmerken, sterren, drinkvenster en notitie klappen open onder de naam. De volledige pagina per wijn staat op `/wijn/<id>`. |
 | **Toevoegen** — formulier | `/toevoegen` | |
 | Duplicaatwaarschuwing | `/toevoegen` | Waarschuwt op naam, en bij een ingevuld oogstjaar ook daarop. |
-| **Tijdlijn** — drinkvensters op urgentie | Sorteren op "Op dronk" | Groepeert het register op status, met een kopje per groep. Een apart tabblad zou hetzelfde tonen. |
+| **Tijdlijn** — drinkvensters op urgentie | `/tijdlijn` | Eigen tabblad, net als in het origineel: elk venster als balk op één jaarschaal, gegroepeerd op status. Eén doorlopende lijn voor dit jaar in plaats van een streepje per regel. |
 | **Meldingen** | Filter "vraagt aandacht" | Zit met een teller naast de zoekbalk. |
 | **Dagboek** | `/dagboek` | |
 | Laatste fles: bewaren of verwijderen | Detailpagina | Dezelfde keuze; het dagboek blijft in beide gevallen intact. |
@@ -44,10 +44,17 @@ terecht is gekomen.
   `tests/insights.test.ts` vergelijkt de telling met `updateStats()` uit de oude app zelf.
 - **"Gedronken" op de kaart** opent het dagboekformulier op de pagina van die wijn (`?drinken=1`)
   in plaats van een aparte dialoog. Zo staat dat formulier op één plek.
+- **De tijdlijn groepeert op status** in plaats van één doorlopende lijst op einddatum. Het kopje
+  boven een groep is meteen het label bij de kleur van de balken eronder, zodat de status nooit
+  alleen aan kleur hangt — nodig, want geen enkele groen-oranje-rode schaal overleeft
+  deuteranopie. `tests/tijdlijn.test.ts` vergelijkt de jaarschaal en de balken met
+  `renderTimeline()` uit de oude app zelf.
 - **Verwijderen staat niet op de kaart.** Dat is onomkeerbaar genoeg om een pagina verder te
   verdienen.
 
 ## Bewust niet overgenomen
 
-- **Tijdlijn en Meldingen als aparte tabbladen.** Beide tonen een selectie van wat het register al
-  laat zien. Ze zijn erin opgegaan in plaats van gekopieerd.
+- **Meldingen als apart tabblad.** Dat toont een selectie van wat het register al laat zien; het
+  is opgegaan in het filter "vraagt aandacht" in plaats van gekopieerd. De tijdlijn is er wél als
+  eigen scherm: die laat iets zien wat een lijst niet kan — alle vensters naast elkaar op één
+  schaal.

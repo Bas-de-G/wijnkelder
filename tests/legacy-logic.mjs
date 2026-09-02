@@ -24,6 +24,9 @@ const somm = slice('function sommTypePref', 'function renderSommStep');
 // updateStats schrijft rechtstreeks in de DOM; met een nep-document kunnen we de
 // vier getallen die het origineel toont alsnog uitlezen.
 const stats = slice('function updateStats()', '// ── RENDER LIST ──');
+// renderTimeline schrijft ook in de DOM; met hetzelfde nep-document kunnen we de
+// HTML uitlezen en de percentages eruit halen.
+const tijdlijn = slice('function renderTimeline()', '// ── LOG ──');
 const sommVragen = slice('const SOMM_QUESTIONS', 'let sommStep');
 
 const factory = new Function(`
@@ -41,9 +44,20 @@ const factory = new Function(`
     getElementById: (id) => ({ set textContent(v) { __velden[id] = v; } }),
   };
   ${stats}
+  let __tl = '';
+  const __tlEl = { set innerHTML(v) { __tl = v; } };
+  const esc = (v) => String(v == null ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const jsAttr = (v) => esc(JSON.stringify(String(v)));
+  const __getById = document.getElementById;
+  document.getElementById = (id) => (id === 'tl-content' ? __tlEl : __getById(id));
+  ${tijdlijn.replace(/\bYEAR\b/g, '__y')}
   return { tokenize, containsWord, scoreWine, bdg, prog, sommScore, sommTypePref,
            SOMM_QUESTIONS, setYear: y => { YEAR_HOLDER.year = y; },
            TYPE_HINTS, NL_STOPWORDS, SPECIAL_WORDS, UNUSUAL_GRAPES,
+           /** De ruwe HTML die het origineel voor de tijdlijn tekent. */
+           renderTimeline: (ws) => { wines = ws; renderTimeline(); return __tl; },
            updateStats: (ws) => {
              wines = ws;
              updateStats();
