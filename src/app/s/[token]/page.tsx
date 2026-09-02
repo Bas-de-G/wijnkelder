@@ -1,14 +1,18 @@
 import { notFound } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
-import { drinkBadge, currentYear } from '@/lib/drinkwindow';
-import { buildAxis, windowSpan, tickPosition } from '@/lib/axis';
-import type { Wine } from '@/lib/types';
+import { drinkBadge, drinkProgress, currentYear } from '@/lib/drinkwindow';
+import { parseNote } from '@/lib/sommelier';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Gedeelde wijnkelder',
   // Een deel-link hoort niet in zoekmachines te belanden.
   robots: { index: false, follow: false },
+};
+
+/** Zelfde streepje per type als in het register. */
+const ACCENT: Record<string, string> = {
+  Rood: 'rood', Wit: 'wit', 'Rosé': 'rose', Mousserend: 'mousserend', Overig: 'overig',
 };
 
 interface GedeeldeWijn {
@@ -36,8 +40,6 @@ export default async function DeelPagina({ params }: { params: Promise<{ token: 
   const wijnen = data as GedeeldeWijn[];
   const jaar = currentYear();
   const flessen = wijnen.reduce((t, w) => t + (w.aantal || 0), 0);
-  const asWijnen = wijnen as unknown as Wine[];
-  const as = buildAxis(asWijnen, jaar);
 
   return (
     <>
@@ -52,76 +54,79 @@ export default async function DeelPagina({ params }: { params: Promise<{ token: 
           <p className="kop-sub">Gedeeld — alleen lezen</p>
         </div>
       </header>
+
       <main className="shell" style={{ maxWidth: 880 }}>
-
-      <div className="ledger">
-        <div className="ledger-head">
-          <span className="label">Wijn</span>
-          <div className="axis-scale" aria-hidden="true">
-            {as.ticks.map((t) => (
-              <span key={t} className="axis-tick" style={{ left: `${tickPosition(t, as) * 100}%` }}>
-                {t}
-              </span>
-            ))}
-          </div>
-          <span className="label" style={{ textAlign: 'right' }}>Voorraad</span>
-        </div>
-
-        <div className="ledger-overlay" aria-hidden="true">
-          <div />
-          <div className="axis-col">
-            <span className="ledger-now" style={{ ['--now' as string]: as.now }} />
-          </div>
-          <div />
-        </div>
-
-        <ul>
+        {/* Dezelfde kaart als in het register, maar zonder uitklappen en zonder
+            knoppen: hier valt niets te bedienen. */}
+        <div className="kaarten" role="list">
           {wijnen.map((w, i) => {
             const badge = drinkBadge(w, jaar);
-            const span = windowSpan(w as unknown as Wine, as);
-            const meta = [w.type, w.regio, w.druif, w.producent].filter(Boolean).join(' · ');
-            const spanClass = badge.status === 'vb' ? 'past'
-              : badge.status === 'wt' ? 'waiting' : badge.closing ? 'closing' : '';
+            const p = drinkProgress(w, jaar);
+            const sub = [w.type, w.jaar, w.druif].filter(Boolean).join(' · ');
+            const secties = parseNote(w.note);
+            const sterren = w.sterren ?? 0;
 
             return (
-              <li key={`${w.naam}-${i}`} className={`row${badge.status === 'vb' ? ' past' : ''}`}>
-                <div className="row-main">
-                  <h3 className="row-name">
-                    {w.naam}
-                    {w.jaar && <span className="row-vintage">{w.jaar}</span>}
-                    <span className={`mark ${badge.status}`}>{badge.label}</span>
-                  </h3>
-                  {meta && <p className="row-meta">{meta}</p>}
-                </div>
-                <div className="window">
-                  <span className="window-track" />
-                  {span ? (
-                    <span
-                      className={`window-span ${spanClass}`}
-                      style={{ ['--from' as string]: span.from, ['--to' as string]: span.to }}
-                    />
-                  ) : (
-                    <span className="window-none" />
-                  )}
-                  <span className="window-now" style={{ ['--now' as string]: as.now }} aria-hidden="true" />
-                  <span className="window-years" aria-hidden="true">
-                    <span>{as.min}</span><span>{as.max}</span>
+              <article key={`${w.naam}-${i}`} className="kaart" role="listitem">
+                <span className={`kaart-accent t-${ACCENT[w.type] ?? 'overig'}`} aria-hidden="true" />
+
+                <div className="kaart-kop kaart-kop-stil">
+                  <span className="kaart-naam">{w.naam}</span>
+                  <span className="kaart-voorraad"><b>{w.aantal}</b> fl.</span>
+                  <span className="kaart-regel">
+                    <span className={`merk ${badge.status}`}>{badge.label}</span>
+                    {sub && <span className="kaart-sub">{sub}</span>}
                   </span>
                 </div>
-                <div className="row-stock">
-                  <span className="n">{w.aantal}</span> fl.
+
+                <div className="kaart-meer open">
+                  <div className="kaart-binnen">
+                    {(w.regio || w.producent) && (
+                      <ul className="kaart-chips">
+                        {w.regio && <li className="feit">{w.regio}</li>}
+                        {w.producent && <li className="feit">{w.producent}</li>}
+                      </ul>
+                    )}
+
+                    {sterren > 0 && (
+                      <p className="kaart-sterren" aria-label={`${sterren} van 5 sterren`}>
+                        <span aria-hidden="true">{'★'.repeat(sterren)}</span>
+                        <span className="leeg" aria-hidden="true">{'★'.repeat(5 - sterren)}</span>
+                      </p>
+                    )}
+
+                    {p && (
+                      <div className="venster">
+                        <p className="venster-kop">
+                          <span className="mono">{w.drink_from}–{w.drink_to}</span>
+                          <span>{p.pct}% van venster</span>
+                        </p>
+                        <div className="venster-baan">
+                          <span className={`venster-vul ${badge.status}`} style={{ width: `${p.pct}%` }} />
+                        </div>
+                      </div>
+                    )}
+
+                    {secties
+                      ? secties.map((sec, j) => (
+                          <div key={j} className="kaart-notitie">
+                            {sec.label && <p className="label">{sec.label}</p>}
+                            <p>{sec.body}</p>
+                          </div>
+                        ))
+                      : w.note && <div className="kaart-notitie"><p>{w.note}</p></div>}
+                  </div>
                 </div>
-              </li>
+              </article>
             );
           })}
-        </ul>
-      </div>
+        </div>
 
-      <p style={{ marginTop: 30, fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.6 }}>
-        Dit is een alleen-lezen weergave van iemands wijnkelder. Prijzen worden niet gedeeld, en
-        de eigenaar kan deze link op elk moment intrekken.
-      </p>
-    </main>
+        <p style={{ marginTop: 30, fontSize: 12.5, color: 'var(--ink-3)', lineHeight: 1.6 }}>
+          Dit is een alleen-lezen weergave van iemands wijnkelder. Prijzen worden niet gedeeld, en
+          de eigenaar kan deze link op elk moment intrekken.
+        </p>
+      </main>
     </>
   );
 }

@@ -185,25 +185,26 @@ function Kaart({ hit }: { hit: AdviceHit }) {
   const lekkerBij = sections?.find((s) => s.label?.toLowerCase() === 'lekker bij');
   const meta = [wine.type, wine.regio, wine.druif].filter(Boolean).join(' · ');
 
+  // De rang staat op een eigen regel bóven de naam. Naast de naam paste hij bij
+  // een korte wijn wel en bij een lange niet, en dan zijn de twee kaarten
+  // verschillend van vorm.
   return (
-    <li className="panel" style={{ borderRadius: 3 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-        <h3 className="row-name" style={{ fontSize: 21 }}>
-          <Link href={`/wijn/${wine.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-            {wine.naam}
-          </Link>
-          {wine.jaar && <span className="row-vintage">{wine.jaar}</span>}
-        </h3>
-        <span className="label" style={{ color: 'var(--oxblood)' }}>{label}</span>
-      </div>
-      <p className="row-meta" style={{ whiteSpace: 'normal', marginTop: 3 }}>
+    <li className="panel advies-kaart">
+      <p className="label advies-rang">{label}</p>
+      <h3 className="row-name advies-naam">
+        <Link href={`/wijn/${wine.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+          {wine.naam}
+        </Link>
+        {wine.jaar && <span className="row-vintage">{wine.jaar}</span>}
+      </h3>
+      <p className="row-meta advies-meta">
         {meta}
         {meta && <span className="sep">·</span>}
-        <span className={`mark ${badge.status}`} style={{ fontSize: 10.5 }}>{badge.label}</span>
+        <span className={`merk ${badge.status}`}>{badge.label}</span>
         <span className="sep">·</span>
         <span className="mono">{wine.aantal} fl.</span>
       </p>
-      <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--ink-2)', marginTop: 12 }}>
+      <p className="advies-reden">
         {lekkerBij ? lekkerBij.body
           : wine.note ? wine.note.split('\n').filter(Boolean)[0]
           : `Geen eigen notitie — over het algemeen lekker bij ${genericPairing(wine.type)}.`}
@@ -213,8 +214,6 @@ function Kaart({ hit }: { hit: AdviceHit }) {
 }
 
 function Result({ result }: { result: AdviceResult }) {
-  const year = currentYear();
-
   if (!result.hits.length) {
     return (
       <div className="notice warn">
@@ -236,42 +235,7 @@ function Result({ result }: { result: AdviceResult }) {
         Aanbevolen bij {result.summary}
       </p>
       <ul style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {result.hits.map(({ wine, label }) => {
-          const badge = drinkBadge(wine, year);
-          const sections = parseNote(wine.note);
-          const lekkerBij = sections?.find((s) => s.label?.toLowerCase() === 'lekker bij');
-          const meta = [wine.type, wine.regio, wine.druif].filter(Boolean).join(' · ');
-
-          return (
-            <li key={wine.id} className="panel" style={{ borderRadius: 3 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                <h3 className="row-name" style={{ fontSize: 21 }}>
-                  <Link href={`/wijn/${wine.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                    {wine.naam}
-                  </Link>
-                  {wine.jaar && <span className="row-vintage">{wine.jaar}</span>}
-                </h3>
-                <span className="label" style={{ color: 'var(--oxblood)' }}>{label}</span>
-              </div>
-
-              <p className="row-meta" style={{ whiteSpace: 'normal', marginTop: 3 }}>
-                {meta}
-                {meta && <span className="sep">·</span>}
-                <span className={`mark ${badge.status}`} style={{ fontSize: 10.5 }}>{badge.label}</span>
-                <span className="sep">·</span>
-                <span className="mono">{wine.aantal} fl.</span>
-              </p>
-
-              <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--ink-2)', marginTop: 12 }}>
-                {lekkerBij
-                  ? lekkerBij.body
-                  : wine.note
-                    ? wine.note.split('\n').filter(Boolean)[0]
-                    : `Geen eigen notitie — over het algemeen lekker bij ${genericPairing(wine.type)}.`}
-              </p>
-            </li>
-          );
-        })}
+        {result.hits.map((h) => <Kaart key={h.wine.id} hit={h} />)}
       </ul>
     </section>
   );

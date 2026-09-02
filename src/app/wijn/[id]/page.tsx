@@ -10,8 +10,15 @@ import { WineActions } from './WineActions';
 
 export const dynamic = 'force-dynamic';
 
-export default async function WijnPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function WijnPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ drinken?: string }>;
+}) {
   const { id } = await params;
+  const { drinken } = await searchParams;
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -64,7 +71,7 @@ export default async function WijnPage({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      <WineActions wine={wine} />
+      <WineActions wine={wine} meteenOpen={drinken === '1'} />
 
       <details style={{ marginTop: 34 }}>
         <summary style={{ cursor: 'pointer', color: 'var(--ink-2)', fontSize: 14, fontWeight: 600 }}>

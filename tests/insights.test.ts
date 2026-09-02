@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { totals, countBy, countByStatus, needsAttention } from '../src/lib/insights';
+import { totals, countBy, countByStatus, needsAttention, kopCijfers } from '../src/lib/insights';
+import { legacy } from './legacy-logic.mjs';
 import type { Wine, WineType } from '../src/lib/types';
 
 const w = (p: Partial<Wine> & { naam: string }): Wine => ({
@@ -119,5 +120,51 @@ describe('voorraad tellen als het aantal als tekst binnenkomt', () => {
 
   it('telt flessen op zonder aan elkaar te plakken', () => {
     expect(totals(wines).flessen).toBe(2);
+  });
+});
+
+
+describe('de vier cijfers in de kop', () => {
+  // Dennis merkte op dat "op dronk" niet meer naar het aantal flessen keek. Dat
+  // klopte: de kop telde wijnen. Deze test vergelijkt met de oude app zelf, dus
+  // hij valt om zodra de telling weer afwijkt.
+  const JAAR = 2026;
+
+  const naarLegacy = (x: Wine) => ({
+    naam: x.naam, type: x.type, note: x.note ?? '',
+    van: x.drink_from == null ? '' : String(x.drink_from),
+    tm: x.drink_to == null ? '' : String(x.drink_to),
+    aantal: x.aantal,
+  });
+
+  const KELDER = [
+    w({ naam: 'op dronk', drink_from: 2020, drink_to: 2030, aantal: 3 }),
+    w({ naam: 'wacht nog', drink_from: 2030, drink_to: 2040, aantal: 6 }),
+    w({ naam: 'over hoogtepunt', drink_from: 2010, drink_to: 2015, aantal: 2 }),
+    w({ naam: 'geen venster', aantal: 4 }),
+    w({ naam: 'op, maar bewaard', drink_from: 2020, drink_to: 2030, aantal: 0 }),
+    w({ naam: 'alleen een begin', drink_from: 2024, drink_to: null, aantal: 5 }),
+    w({ naam: 'alleen een eind', drink_from: null, drink_to: 2028, aantal: 1 }),
+  ];
+
+  it('telt flessen, niet wijnen', () => {
+    const k = kopCijfers(KELDER, JAAR);
+    expect(k.flessen).toBe(21);
+    expect(k.nu).toBeGreaterThan(3);
+  });
+
+  it('geeft dezelfde getallen als de oude app', () => {
+    legacy.setYear(JAAR);
+    expect(kopCijfers(KELDER, JAAR)).toEqual(legacy.updateStats(KELDER.map(naarLegacy)));
+  });
+
+  it('de eerste drie getallen zijn samen het totaal', () => {
+    const k = kopCijfers(KELDER, JAAR);
+    expect(k.nu + k.wachten + k.voorbij).toBe(k.flessen);
+  });
+
+  it('telt een aantal dat als tekst binnenkomt gewoon mee', () => {
+    const k = kopCijfers([w({ naam: 'tekst', aantal: '2' as unknown as number })], JAAR);
+    expect(k.flessen).toBe(2);
   });
 });

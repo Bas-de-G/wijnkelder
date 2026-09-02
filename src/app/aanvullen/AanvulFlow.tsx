@@ -78,7 +78,7 @@ export function AanvulFlow({ totaal, onvolledig }: { totaal: number; onvolledig:
                 meesturen om de bestaande gegevens te laten controleren.</>
             )}
           </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+          <div className="knoprij" style={{ marginTop: 12 }}>
             {onvolledig > 0 && (
               <a className="btn btn-primary" href="/api/export/json?onvolledig=1" download>
                 Alleen wat ontbreekt ({onvolledig})
@@ -135,7 +135,7 @@ export function AanvulFlow({ totaal, onvolledig }: { totaal: number; onvolledig:
             />
           </div>
 
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="knoprij">
             <button
               className="btn btn-primary"
               onClick={() => verstuur(plakveld)}

@@ -2,9 +2,13 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { drinkBadge, currentYear, STATUS_ORDER, type DrinkStatus } from '@/lib/drinkwindow';
-import { buildAxis, windowSpan, tickPosition } from '@/lib/axis';
-import { WINE_TYPES, type Wine } from '@/lib/types';
+import { drinkBadge, drinkProgress, currentYear, STATUS_ORDER, type DrinkStatus } from '@/lib/drinkwindow';
+import { parseNote } from '@/lib/sommelier';
+import { WINE_TYPES, type Wine, type WineType } from '@/lib/types';
+import {
+  IconChevron, IconPlek, IconDruif, IconJaar, IconVak, IconPrijs, IconHerkomst,
+  IconGedronken, IconBewerken,
+} from './icons';
 
 type Sort = 'naam' | 'venster' | 'voorraad' | 'toegevoegd';
 
@@ -14,6 +18,23 @@ const SORT_LABELS: Array<[Sort, string]> = [
   ['voorraad', 'Voorraad'],
   ['toegevoegd', 'Toegevoegd'],
 ];
+
+/** Kopjes boven de groepen als je op drinkvenster sorteert, net als in de oude app. */
+const GROEP_LABELS: Record<DrinkStatus, string> = {
+  vb: 'Over hoogtepunt',
+  nu: 'Nu drinken',
+  wt: 'Wachten',
+  nvt: 'Geen venster',
+};
+
+/** Een streepje in de kleur van het type, bovenlangs de kaart. */
+const ACCENT: Record<WineType, string> = {
+  Rood: 'rood',
+  Wit: 'wit',
+  'Rosé': 'rose',
+  Mousserend: 'mousserend',
+  Overig: 'overig',
+};
 
 /** Eerste letter zonder accent; alles wat geen letter is valt onder '#'. */
 function beginletter(naam: string): string {
@@ -36,6 +57,9 @@ export function Ledger({ wines }: { wines: Wine[] }) {
   const [sort, setSort] = useState<Sort>('naam');
   // Vervangt het aparte meldingen-tabblad uit de oude app.
   const [aandacht, setAandacht] = useState(false);
+  // Welke kaarten dicht staan. Dicht in plaats van open, zodat een nieuwe wijn
+  // vanzelf opengeklapt in beeld komt — zoals in de app van Dennis.
+  const [dicht, setDicht] = useState<ReadonlySet<string>>(() => new Set());
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -43,7 +67,7 @@ export function Ledger({ wines }: { wines: Wine[] }) {
       if (type && w.type !== type) return false;
       if (needle && !haystack(w).includes(needle)) return false;
       if (aandacht) {
-        if ((w.aantal || 0) === 0) return false;
+        if (!(Number(w.aantal) > 0)) return false;
         const b = drinkBadge(w, year);
         if (b.status !== 'vb' && !b.soon && !b.closing) return false;
       }
@@ -51,11 +75,11 @@ export function Ledger({ wines }: { wines: Wine[] }) {
     });
 
     out.sort((a, b) => {
-      if (sort === 'voorraad') return (b.aantal || 0) - (a.aantal || 0);
+      if (sort === 'voorraad') return (Number(b.aantal) || 0) - (Number(a.aantal) || 0);
       if (sort === 'toegevoegd') return b.created_at.localeCompare(a.created_at);
       if (sort === 'venster') {
-        const sa = STATUS_ORDER[drinkBadge(a, year).status as DrinkStatus];
-        const sb = STATUS_ORDER[drinkBadge(b, year).status as DrinkStatus];
+        const sa = STATUS_ORDER[drinkBadge(a, year).status];
+        const sb = STATUS_ORDER[drinkBadge(b, year).status];
         if (sa !== sb) return sa - sb;
         return (a.drink_to ?? 9999) - (b.drink_to ?? 9999);
       }
@@ -64,13 +88,9 @@ export function Ledger({ wines }: { wines: Wine[] }) {
     return out;
   }, [wines, q, type, sort, aandacht, year]);
 
-  // De as wordt over de getoonde selectie gebouwd, zodat inzoomen op één type
-  // ook de tijdas laat inzoomen.
-  const axis = useMemo(() => buildAxis(shown, year), [shown, year]);
-
   // Springbalk: alleen zinvol bij een alfabetische lijst die lang genoeg is om
   // in te verdwalen.
-  const lijst = useRef<HTMLUListElement>(null);
+  const lijst = useRef<HTMLDivElement>(null);
   const letters = useMemo(() => {
     if (sort !== 'naam' || shown.length < 12) return [];
     return [...new Set(shown.map((w) => beginletter(w.naam)))];
@@ -81,12 +101,26 @@ export function Ledger({ wines }: { wines: Wine[] }) {
     doel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
+  const wissel = useCallback((id: string) => {
+    setDicht((oud) => {
+      const uit = new Set(oud);
+      if (uit.has(id)) uit.delete(id);
+      else uit.add(id);
+      return uit;
+    });
+  }, []);
+
+  const allesOpen = shown.length > 0 && shown.every((w) => !dicht.has(w.id));
+  const wisselAlles = useCallback(() => {
+    setDicht(allesOpen ? new Set(shown.map((w) => w.id)) : new Set());
+  }, [allesOpen, shown]);
+
   // Telling voor het aandacht-filter: over hoogtepunt, of binnen twee jaar
   // beginnend of eindigend.
   const attentionCount = useMemo(
     () =>
       wines.filter((w) => {
-        if ((w.aantal || 0) === 0) return false;
+        if (!(Number(w.aantal) > 0)) return false;
         const b = drinkBadge(w, year);
         return b.status === 'vb' || b.soon || b.closing;
       }).length,
@@ -101,7 +135,7 @@ export function Ledger({ wines }: { wines: Wine[] }) {
           Voeg je eerste fles toe, of neem je bestaande kelder over uit een back-up van de oude
           app.
         </p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="knoprij knoprij-midden">
           <Link className="btn btn-primary" href="/toevoegen">Wijn toevoegen</Link>
           <Link className="btn btn-quiet" href="/importeren">Back-up importeren</Link>
         </div>
@@ -151,49 +185,52 @@ export function Ledger({ wines }: { wines: Wine[] }) {
           </p>
         </div>
       ) : (
-        <div className="ledger">
-          <div className="ledger-head">
-            <span className="label">Wijn</span>
-            <div className="axis-scale" aria-hidden="true">
-              {axis.ticks.map((t) => (
-                <span
-                  key={t}
-                  className="axis-tick"
-                  style={{ left: `${tickPosition(t, axis) * 100}%` }}
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-            <span className="label" style={{ textAlign: 'right' }}>Voorraad</span>
+        <>
+          <div className="lijst-balk">
+            <p className="lijst-telling">
+              {shown.length === wines.length
+                ? `${wines.length} ${wines.length === 1 ? 'wijn' : 'wijnen'}`
+                : `${shown.length} van ${wines.length}`}
+            </p>
+            <button className="lijst-wissel" onClick={wisselAlles}>
+              {allesOpen ? 'Alles inklappen' : 'Alles uitklappen'}
+            </button>
           </div>
 
-          <div className="ledger-overlay" aria-hidden="true">
-            <div />
-            <div className="axis-col">
-              <span className="ledger-now" style={{ ['--now' as string]: axis.now }} />
-            </div>
-            <div />
-          </div>
+          <div className="kaarten" ref={lijst} role="list">
+            {shown.map((w, i) => {
+              const vorige = i > 0 ? shown[i - 1] : null;
+              const status = drinkBadge(w, year).status;
+              // Bij sorteren op drinkvenster een kopje boven elke groep, zoals
+              // in de oude app. Bij de andere sorteringen zegt zo'n kopje niets.
+              const groep =
+                sort === 'venster' &&
+                (!vorige || drinkBadge(vorige, year).status !== status)
+                  ? GROEP_LABELS[status]
+                  : null;
 
-          <ul ref={lijst}>
-            {shown.map((w, i) => (
-              <Row
-                key={w.id}
-                wine={w}
-                axis={axis}
-                year={year}
-                index={i}
-                letter={
-                  // Alleen de eerste wijn per letter krijgt het merk, zodat de
-                  // springbalk precies bij het begin van de groep uitkomt.
-                  i === 0 || beginletter(shown[i - 1].naam) !== beginletter(w.naam)
-                    ? beginletter(w.naam)
-                    : undefined
-                }
-              />
-            ))}
-          </ul>
+              return (
+                <div key={w.id} className="kaart-groep">
+                  {groep && <p className="groep-kop">{groep}</p>}
+                  <Kaart
+                    wine={w}
+                    year={year}
+                    index={i}
+                    open={!dicht.has(w.id)}
+                    onWissel={() => wissel(w.id)}
+                    letter={
+                      // Alleen de eerste wijn per letter krijgt het merk, zodat de
+                      // springbalk precies bij het begin van de groep uitkomt.
+                      sort === 'naam' &&
+                      (!vorige || beginletter(vorige.naam) !== beginletter(w.naam))
+                        ? beginletter(w.naam)
+                        : undefined
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
 
           {letters.length > 1 && (
             <nav className="azbar" aria-label="Spring naar letter">
@@ -204,76 +241,133 @@ export function Ledger({ wines }: { wines: Wine[] }) {
               ))}
             </nav>
           )}
-        </div>
+        </>
       )}
     </>
   );
 }
 
-function Row({
-  wine,
-  axis,
-  year,
-  index,
-  letter,
+function Sterren({ n }: { n: number }) {
+  if (!n) return null;
+  return (
+    <p className="kaart-sterren" aria-label={`${n} van 5 sterren`}>
+      <span aria-hidden="true">{'★'.repeat(n)}</span>
+      <span className="leeg" aria-hidden="true">{'★'.repeat(5 - n)}</span>
+    </p>
+  );
+}
+
+function Kaart({
+  wine, year, index, open, onWissel, letter,
 }: {
   wine: Wine;
-  axis: ReturnType<typeof buildAxis>;
   year: number;
   index: number;
+  open: boolean;
+  onWissel: () => void;
   letter?: string;
 }) {
   const badge = drinkBadge(wine, year);
-  const span = windowSpan(wine, axis);
-  const meta = [wine.type, wine.regio, wine.druif, wine.producent].filter(Boolean);
+  const p = drinkProgress(wine, year);
+  const n = Number(wine.aantal) || 0;
+  const sub = [wine.type, wine.jaar, wine.druif].filter(Boolean).join(' · ');
+  const secties = parseNote(wine.note);
+  // Een randje om wijnen die aandacht vragen, in de kleur van hun eigen status:
+  // een amberkleurige rand om een fles die over zijn hoogtepunt is, spreekt
+  // zichzelf tegen met de pil ernaast.
+  const letOp = badge.status === 'vb' ? ' let-op voorbij'
+    : badge.soon || badge.closing ? ' let-op' : '';
 
-  const spanClass = badge.status === 'vb' ? 'past' : badge.status === 'wt' ? 'waiting' : badge.closing ? 'closing' : '';
+  const chips: Array<[React.ReactNode, string]> = [];
+  if (wine.regio) chips.push([<IconPlek key="r" />, wine.regio]);
+  if (wine.druif) chips.push([<IconDruif key="d" />, wine.druif]);
+  if (wine.jaar) chips.push([<IconJaar key="j" />, String(wine.jaar)]);
+  if (wine.locatie) chips.push([<IconVak key="l" />, wine.locatie]);
+  if (wine.prijs != null && wine.prijs > 0) {
+    chips.push([<IconPrijs key="p" />, `€ ${wine.prijs.toFixed(2)}`]);
+  }
+  if (wine.herkomst && wine.herkomst.trim().toLowerCase() !== 'zelf gekocht') {
+    chips.push([<IconHerkomst key="h" />, wine.herkomst]);
+  }
+
+  const paneelId = `kaart-${wine.id}`;
 
   return (
-    <li
-      className={`row${badge.status === 'vb' ? ' past' : ''}`}
+    <article
+      className={`kaart${letOp}${n === 0 ? ' is-op' : ''}`}
       data-letter={letter}
-      style={{ animationDelay: `${Math.min(index, 18) * 22}ms` }}
+      role="listitem"
+      style={{ animationDelay: `${Math.min(index, 14) * 24}ms` }}
     >
-      <div className="row-main">
-        <h3 className="row-name">
-          <Link href={`/wijn/${wine.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-            {wine.naam}
-          </Link>
-          {wine.jaar && <span className="row-vintage">{wine.jaar}</span>}
-        </h3>
-        <p className="row-meta">
-          <span className={`mark ${badge.status}`}>{badge.label}</span>
-          {meta.map((m, i) => (
-            <span key={i}>
-              <span className="sep">·</span>
-              {m}
-            </span>
-          ))}
-        </p>
-      </div>
+      <span className={`kaart-accent t-${ACCENT[wine.type] ?? 'overig'}`} aria-hidden="true" />
 
-      <div className="window">
-        <span className="window-track" />
-        {span ? (
-          <span
-            className={`window-span ${spanClass}`}
-            style={{ ['--from' as string]: span.from, ['--to' as string]: span.to }}
-            title={`${wine.drink_from ?? '?'} – ${wine.drink_to ?? '?'}`}
-          />
-        ) : (
-          <span className="window-none" title="Geen drinkvenster ingevuld" />
-        )}
-        <span className="window-now" style={{ ['--now' as string]: axis.now }} aria-hidden="true" />
-        <span className="window-years" aria-hidden="true">
-          <span>{axis.min}</span>
-          <span>{axis.max}</span>
+      <button className="kaart-kop" onClick={onWissel} aria-expanded={open} aria-controls={paneelId}>
+        <span className="kaart-naam">{wine.naam}</span>
+        <span className="kaart-voorraad">
+          <b>{n}</b> fl.
         </span>
-      </div>
+        <IconChevron className={`kaart-pijl${open ? ' open' : ''}`} />
+        <span className="kaart-regel">
+          <span className={`merk ${badge.status}`}>{badge.label}</span>
+          {sub && <span className="kaart-sub">{sub}</span>}
+        </span>
+      </button>
 
-      <div className={`row-stock${wine.aantal === 0 ? ' is-op' : ''}`}>
-        <span className="n">{wine.aantal}</span> fl.
+      <div className={`kaart-meer${open ? ' open' : ''}`} id={paneelId} hidden={!open}>
+        <div className="kaart-binnen">
+          {chips.length > 0 && (
+            <ul className="kaart-chips">
+              {chips.map(([icoon, tekst], i) => (
+                <li key={i} className="feit">{icoon}{tekst}</li>
+              ))}
+            </ul>
+          )}
+
+          <Sterren n={wine.sterren} />
+
+          {p ? (
+            <div className="venster">
+              <p className="venster-kop">
+                <span className="mono">{wine.drink_from}–{wine.drink_to}</span>
+                <span>{p.pct}% van venster</span>
+              </p>
+              <div className="venster-baan">
+                <span
+                  className={`venster-vul ${badge.status}`}
+                  style={{ width: `${p.pct}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="venster-leeg">Geen drinkvenster ingevuld</p>
+          )}
+
+          {secties ? (
+            secties.map((s, i) => (
+              <div key={i} className="kaart-notitie">
+                {s.label && <p className="label">{s.label}</p>}
+                <p>{s.body}</p>
+              </div>
+            ))
+          ) : wine.note ? (
+            <div className="kaart-notitie"><p>{wine.note}</p></div>
+          ) : null}
+        </div>
+
+        <div className="kaart-voet">
+          <span className="kaart-voet-voorraad">
+            Voorraad <b className="mono">{n}</b> fl.
+          </span>
+          {n > 0 && (
+            <Link className="kaartknop drink" href={`/wijn/${wine.id}?drinken=1`}>
+              <IconGedronken /> Gedronken
+            </Link>
+          )}
+          <Link className="kaartknop" href={`/wijn/${wine.id}`} aria-label={`${wine.naam} openen`}>
+            <IconBewerken /> Openen
+          </Link>
+        </div>
       </div>
-    </li>
+    </article>
   );
 }

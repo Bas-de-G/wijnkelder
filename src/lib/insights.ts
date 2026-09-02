@@ -93,6 +93,28 @@ export function countByStatus(wines: Wine[], year: number = currentYear()): Stat
   return uit;
 }
 
+export interface KopCijfers {
+  nu: number;
+  wachten: number;
+  voorbij: number;
+  flessen: number;
+}
+
+/**
+ * De vier getallen in de kop. Dit telt *flessen*, niet wijnen — zoals de app van
+ * Dennis het deed. Wijnen zonder drinkvenster tellen mee bij "op dronk", zodat
+ * de eerste drie getallen samen precies het totaal zijn.
+ */
+export function kopCijfers(wines: Wine[], year: number = currentYear()): KopCijfers {
+  const s = countByStatus(wines, year);
+  return {
+    nu: s.nu + s.nvt,
+    wachten: s.wt,
+    voorbij: s.vb,
+    flessen: s.nu + s.wt + s.vb + s.nvt,
+  };
+}
+
 /** Wijnen die aandacht vragen: bijna op dronk, bijna voorbij, of al voorbij. */
 export function needsAttention(wines: Wine[], year: number = currentYear()) {
   const voorbij: Wine[] = [], bijnaVoorbij: Wine[] = [], bijnaOpDronk: Wine[] = [];

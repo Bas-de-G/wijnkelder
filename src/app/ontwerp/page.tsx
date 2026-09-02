@@ -4,7 +4,8 @@ import { Ledger } from '../Ledger';
 import { TabBar } from '../Nav';
 import { Bars } from '../inzichten/Charts';
 import { AanvulFlow } from '../aanvullen/AanvulFlow';
-import { totals, countBy } from '@/lib/insights';
+import { AdviceForm } from '../advies/AdviceForm';
+import { totals, countBy, kopCijfers } from '@/lib/insights';
 import type { Wine, WineType } from '@/lib/types';
 
 // Alleen tijdens ontwikkelen: het register met voorbeelddata, zodat je aan het
@@ -43,7 +44,7 @@ export default function OntwerpPage() {
 
   return (
     <>
-      <AppHeader tally={{ nu: 4, wachten: 1, voorbij: 2, flessen: 31 }} />
+      <AppHeader tally={kopCijfers(DEMO)} />
       <main className="shell">
       <Ledger wines={DEMO} />
 
@@ -77,6 +78,10 @@ export default function OntwerpPage() {
 
       <div style={{ marginTop: 60 }}>
         <AanvulFlow totaal={14} onvolledig={5} />
+      </div>
+
+      <div style={{ marginTop: 60 }}>
+        <AdviceForm wines={DEMO} />
       </div>
       </main>
       <TabBar />
