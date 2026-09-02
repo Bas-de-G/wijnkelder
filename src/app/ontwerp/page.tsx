@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { AppHeader, PageHeader } from '../Masthead';
+import { AppHeader, Cijfers, PageHeader } from '../Masthead';
 import { Ledger } from '../Ledger';
 import { TabBar } from '../Nav';
 import { Bars } from '../inzichten/Charts';
@@ -46,8 +46,9 @@ export default function OntwerpPage() {
 
   return (
     <>
-      <AppHeader tally={kopCijfers(DEMO)} />
+      <AppHeader />
       <main className="shell">
+      <Cijfers tally={kopCijfers(DEMO)} />
       <Ledger wines={DEMO} />
 
       <div style={{ marginTop: 60 }}>
