@@ -63,8 +63,7 @@
   --kop-ink:     #FBF2F4;
   --kop-dim:     rgba(251, 242, 244, .56);
   --kop-rand:    rgba(255, 255, 255, .09);
-  --kop-nu:      #86CFA4;
-  --kop-wacht:   #E7B75F;
+  /* Het roze van "kelder" in het wordmerk, en de focusring op de knop ernaast. */
   --kop-voorbij: #F397A5;
 
   --tab-h: 58px;
@@ -232,6 +231,13 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
    nooit om — anders is de balk bij "Amarone della Valpolicella" hoger dan bij
    "Dagboek" en verspringt de pagina eronder zodra je van tabblad wisselt. */
 .kop-slank .kop-binnen { padding-bottom: 22px; }
+/* Op een telefoon is dezelfde balk zes pixels lager genoeg; die ruimte gaat
+   naar de lijst eronder. Deze regel hoorde bij de cijfers die hier stonden en
+   ging met ze mee toen die naar het papier verhuisden. */
+@media (max-width: 560px) {
+  .kop .kop-binnen { padding: 16px 16px 14px; }
+  .kop-slank .kop-binnen { padding-bottom: 14px; }
+}
 .kop-slank .kop-merk {
   min-width: 0;
   overflow: hidden;
@@ -283,19 +289,24 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
 .kop-knop:hover { background: rgba(255, 255, 255, .16); }
 .kop-knop:focus-visible { outline: 2px solid var(--kop-voorbij); outline-offset: 2px; }
 
-/* De vier cijfers als in de wand uitgespaarde vakken, niet als zwevende kaartjes. */
+/* ── DE VIER CIJFERS ───────────────────────────────────────────────────────── */
+/* Stonden eerst in de donkere kop. Daar maakten ze die kop 67px hoger dan op
+   elk ander scherm, en dus sprong de pagina bij het wisselen van tabblad. Nu
+   staan ze op het papier, als eerste blok van het register dat ze samenvatten.
+   Vier naast elkaar blijven, ook op een smalle telefoon: twee rijen kost te
+   veel hoogte boven een lijst die je juist wilt zien. */
 .cijfers {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
-  margin: 18px 0 0;
-  background: var(--kop-rand);
-  border: 1px solid var(--kop-rand);
+  margin-bottom: 22px;
+  background: var(--rule-soft);
+  border: 1px solid var(--rule-soft);
   border-radius: 3px;
   overflow: hidden;
 }
 .cijfer {
-  background: rgba(0, 0, 0, .22);
+  background: var(--paper-2);
   padding: 11px 12px 10px;
   display: flex;
   flex-direction: column;
@@ -308,27 +319,24 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   font-size: 22px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--kop-ink);
+  color: var(--ink);
 }
 .cijfer dt {
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--kop-dim);
+  color: var(--ink-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.cijfer.nu dd { color: var(--kop-nu); }
-.cijfer.wacht dd { color: var(--kop-wacht); }
-.cijfer.voorbij dd { color: var(--kop-voorbij); }
+.cijfer.nu dd { color: var(--moss); }
+.cijfer.wacht dd { color: var(--brass); }
+.cijfer.voorbij dd { color: var(--oxblood); }
 
-/* Vier naast elkaar blijven, ook op een smalle telefoon: twee rijen kost te
-   veel hoogte boven een lijst die je juist wilt zien. */
 @media (max-width: 560px) {
-  .kop-binnen { padding: 16px 16px 14px; }
-  .cijfers { margin-top: 14px; }
+  .cijfers { margin-bottom: 18px; }
   .cijfer { padding: 9px 8px 8px; }
   .cijfer dd { font-size: 19px; }
   .cijfer dt {
@@ -336,7 +344,7 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
     letter-spacing: .06em;
     white-space: normal;
     line-height: 1.25;
-    /* "Over hoogtepunt" loopt over twee regels, de andere drie niet. Twee
+    /* "Over hoogtepunt" loopt over twee regels en de andere drie niet. Twee
        regels reserveren houdt de onderrand van de vier vakken gelijk. */
     min-height: 2.5em;
   }

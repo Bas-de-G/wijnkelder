@@ -54,10 +54,16 @@ function Datum() {
   return <span className="kop-datum mono">{datum}</span>;
 }
 
-/** De kop van de kelderpagina: wordmerk plus de vier cijfers die ertoe doen. */
-export function AppHeader({ tally }: { tally: Tally }) {
+/**
+ * De kop van de kelderpagina. Even hoog als die van elk ander scherm: de vier
+ * cijfers stonden hier eerst bij in, en dan sprong de hele pagina 67 pixels
+ * omhoog zodra je naar een ander tabblad ging. Ze staan nu als <Cijfers /> in
+ * de pagina zelf, waar ze ook thuishoren — het is een samenvatting van het
+ * register, geen navigatie.
+ */
+export function AppHeader() {
   return (
-    <header className="kop">
+    <header className="kop kop-slank">
       <div className="kop-binnen">
         <div className="kop-rij">
           <Link href="/" className="kop-merk">
@@ -68,27 +74,32 @@ export function AppHeader({ tally }: { tally: Tally }) {
             <ThemeToggle />
           </div>
         </div>
-
-        <dl className="cijfers">
-          <div className="cijfer nu">
-            <dd>{tally.nu}</dd>
-            <dt>Op dronk</dt>
-          </div>
-          <div className="cijfer wacht">
-            <dd>{tally.wachten}</dd>
-            <dt>Wachten</dt>
-          </div>
-          <div className="cijfer voorbij">
-            <dd>{tally.voorbij}</dd>
-            <dt>Over hoogtepunt</dt>
-          </div>
-          <div className="cijfer">
-            <dd>{tally.flessen}</dd>
-            <dt>Flessen</dt>
-          </div>
-        </dl>
       </div>
     </header>
+  );
+}
+
+/** De vier getallen die ertoe doen, in flessen. */
+export function Cijfers({ tally }: { tally: Tally }) {
+  return (
+    <dl className="cijfers">
+      <div className="cijfer nu">
+        <dd>{tally.nu}</dd>
+        <dt>Op dronk</dt>
+      </div>
+      <div className="cijfer wacht">
+        <dd>{tally.wachten}</dd>
+        <dt>Wachten</dt>
+      </div>
+      <div className="cijfer voorbij">
+        <dd>{tally.voorbij}</dd>
+        <dt>Over hoogtepunt</dt>
+      </div>
+      <div className="cijfer">
+        <dd>{tally.flessen}</dd>
+        <dt>Flessen</dt>
+      </div>
+    </dl>
   );
 }
 

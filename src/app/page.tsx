@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCellarWithWines } from '@/lib/cellar';
 import { kopCijfers } from '@/lib/insights';
-import { AppHeader } from './Masthead';
+import { AppHeader, Cijfers } from './Masthead';
 import { Nav, TabBar } from './Nav';
 import { Ledger } from './Ledger';
 
@@ -17,9 +17,10 @@ export default async function KelderPage() {
 
   return (
     <>
-      <AppHeader tally={tally} />
+      <AppHeader />
       <main className="shell">
         <Nav />
+        <Cijfers tally={tally} />
         <Ledger wines={wines} />
         {wines.length > 0 && (
           <div className="alleen-breed knoprij" style={{ marginTop: 26 }}>
