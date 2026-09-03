@@ -86,13 +86,42 @@ describe('schrijven ververst elk scherm dat de wijnlijst toont', () => {
   });
 });
 
-describe('de router houdt een bezocht scherm even vast', () => {
-  it('staleTimes staat aan', () => {
-    const cfg = lees('next.config.ts');
-    expect(cfg).toMatch(/staleTimes:\s*\{\s*dynamic:\s*[1-9]/);
+describe('een bezocht scherm wordt niet clientside bewaard', () => {
+  // Hier stond dertig seconden, om het heen-en-weer tussen tabbladen direct te
+  // maken. Dat is teruggedraaid: na het vastleggen van een gedronken fles stuurt
+  // de actie je terug naar de kelder, en die stond dan nog in die cache — dus
+  // zag je de oude voorraad. Een verkeerd aantal flessen is erger dan een
+  // scherm dat een tel moet nadenken.
+  const cfg = lees('next.config.ts');
+
+  it('dynamische routes worden niet vastgehouden', () => {
+    expect(cfg).not.toMatch(/dynamic:\s*[1-9]/);
   });
 
-  it('de tabbladen halen hun scherm alvast op', () => {
-    expect(lees('src/app/Nav.tsx')).toMatch(/<Link key=\{href\} href=\{href\} prefetch/);
+  it('de tabbladen halen hun scherm nog wel alvast op', () => {
+    expect(lees('src/app/Nav.tsx')).toMatch(/href=\{href\} prefetch/);
+  });
+});
+
+describe('de tekstrij op brede schermen loopt niet om', () => {
+  // Alle tien de bestemmingen in één rij liep om, en die tweede regel zag eruit
+  // als een tweede balk. Dezelfde indeling als op een telefoon: de vijf
+  // hoofdbestemmingen plus Toevoegen, de rest achter "Meer".
+  const nav = lees('src/app/Nav.tsx');
+
+  it('de rij bevat niet meer alle bestemmingen', () => {
+    expect(nav).not.toMatch(/ALLE\.map/);
+    expect(nav).not.toMatch(/const ALLE =/);
+  });
+
+  it('de rij toont de hoofdbestemmingen en een Meer-knop', () => {
+    const blok = nav.slice(nav.indexOf('export function Nav()'), nav.indexOf('export function TabBar()'));
+    expect(blok).toContain('HOOFD.map');
+    expect(blok).toContain('nav-meer');
+  });
+
+  it('beide balken delen hetzelfde Meer-paneel', () => {
+    expect(nav.match(/<MeerPaneel /g)).toHaveLength(2);
+    expect(nav.match(/function MeerPaneel/g)).toHaveLength(1);
   });
 });

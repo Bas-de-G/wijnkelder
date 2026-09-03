@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { signOut } from '@/lib/actions';
 import {
   IconKelder, IconPlus, IconTijdlijn, IconDagboek, IconInzichten, IconAdvies,
@@ -30,19 +30,106 @@ const OVERIG: Item[] = [
   { href: '/importeren', label: 'Back-up importeren', Icon: IconImporteren },
 ];
 
-const ALLE = [...HOOFD, { href: '/toevoegen', label: 'Toevoegen', Icon: IconPlus }, ...OVERIG];
+/**
+ * Het paneel achter "Meer": alles wat je zelden nodig hebt, plus uitloggen.
+ * Gedeeld door de tabbalk en de tekstrij, zodat er maar één lijst is.
+ */
+function MeerPaneel({ open, sluit }: { open: boolean; sluit: () => void }) {
+  const path = usePathname();
 
-/** Brede schermen: één rij tekstlinks boven de inhoud. */
+  // Achtergrond niet laten meescrollen terwijl het paneel openstaat.
+  useEffect(() => {
+    if (!open) return;
+    const vorige = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const opEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') sluit(); };
+    window.addEventListener('keydown', opEscape);
+    return () => {
+      document.body.style.overflow = vorige;
+      window.removeEventListener('keydown', opEscape);
+    };
+  }, [open, sluit]);
+
+  if (!open) return null;
+
+  return (
+    <div className="sheet-overlay" onClick={sluit}>
+      <div
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Meer"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sheet-kop">
+          <span className="label">Meer</span>
+          <button onClick={sluit} aria-label="Sluiten" className="sheet-sluit">
+            <IconSluit />
+          </button>
+        </div>
+        <ul>
+          {OVERIG.map(({ href, label, Icon }) => (
+            <li key={href}>
+              <Link href={href} aria-current={path === href ? 'page' : undefined}>
+                <Icon />
+                <span>{label}</span>
+              </Link>
+            </li>
+          ))}
+          <li className="sheet-scheiding">
+            <form action={signOut}>
+              <button type="submit">
+                <IconUit />
+                <span>Uitloggen</span>
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Brede schermen: één rij tekstlinks boven de inhoud.
+ *
+ * Nadrukkelijk één rij. Hier stonden alle tien de bestemmingen in, en dan liep
+ * de rij om — met "Exporteren & delen" en "Back-up importeren" op een tweede
+ * regel die eruitzag als een tweede balk. Nu dezelfde indeling als op een
+ * telefoon: de vijf hoofdbestemmingen, de rest achter "Meer".
+ */
 export function Nav() {
   const path = usePathname();
+  const [meerOpen, setMeerOpen] = useState(false);
+  const sluit = useCallback(() => setMeerOpen(false), []);
+
+  useEffect(() => { setMeerOpen(false); }, [path]);
+
+  const inOverig = OVERIG.some((i) => i.href === path);
+
   return (
-    <nav className="nav" aria-label="Hoofdnavigatie">
-      {ALLE.map(({ href, label }) => (
-        <Link key={href} href={href} aria-current={path === href ? 'page' : undefined}>
-          {label}
+    <>
+      <nav className="nav" aria-label="Hoofdnavigatie">
+        {HOOFD.map(({ href, label }) => (
+          <Link key={href} href={href} prefetch aria-current={path === href ? 'page' : undefined}>
+            {label}
+          </Link>
+        ))}
+        <Link href="/toevoegen" aria-current={path === '/toevoegen' ? 'page' : undefined}>
+          Toevoegen
         </Link>
-      ))}
-    </nav>
+        <button
+          className="nav-meer"
+          onClick={() => setMeerOpen(true)}
+          aria-expanded={meerOpen}
+          aria-current={inOverig ? 'page' : undefined}
+        >
+          Meer
+        </button>
+      </nav>
+
+      <MeerPaneel open={meerOpen} sluit={sluit} />
+    </>
   );
 }
 
@@ -54,22 +141,10 @@ export function Nav() {
 export function TabBar() {
   const path = usePathname();
   const [meerOpen, setMeerOpen] = useState(false);
+  const sluit = useCallback(() => setMeerOpen(false), []);
 
   // Sluit het paneel zodra je ergens heen navigeert.
   useEffect(() => { setMeerOpen(false); }, [path]);
-
-  // Achtergrond niet laten meescrollen terwijl het paneel openstaat.
-  useEffect(() => {
-    if (!meerOpen) return;
-    const vorige = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const opEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') setMeerOpen(false); };
-    window.addEventListener('keydown', opEscape);
-    return () => {
-      document.body.style.overflow = vorige;
-      window.removeEventListener('keydown', opEscape);
-    };
-  }, [meerOpen]);
 
   const inOverig = OVERIG.some((i) => i.href === path);
 
@@ -101,42 +176,7 @@ export function TabBar() {
         </button>
       </nav>
 
-      {meerOpen && (
-        <div className="sheet-overlay" onClick={() => setMeerOpen(false)}>
-          <div
-            className="sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Meer"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sheet-kop">
-              <span className="label">Meer</span>
-              <button onClick={() => setMeerOpen(false)} aria-label="Sluiten" className="sheet-sluit">
-                <IconSluit />
-              </button>
-            </div>
-            <ul>
-              {OVERIG.map(({ href, label, Icon }) => (
-                <li key={href}>
-                  <Link href={href} aria-current={path === href ? 'page' : undefined}>
-                    <Icon />
-                    <span>{label}</span>
-                  </Link>
-                </li>
-              ))}
-              <li className="sheet-scheiding">
-                <form action={signOut}>
-                  <button type="submit">
-                    <IconUit />
-                    <span>Uitloggen</span>
-                  </button>
-                </form>
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+      <MeerPaneel open={meerOpen} sluit={sluit} />
     </>
   );
 }

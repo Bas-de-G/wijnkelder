@@ -122,10 +122,20 @@
 /* ── BASIS ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; min-height: 100%; }
 
 body {
   margin: 0;
+  /* De pagina is altijd minstens zo hoog als het scherm.
+     Klinkt cosmetisch, maar hier zat de sprong in de menubalk: is de inhoud
+     korter dan het scherm, dan neemt Safari op iOS de hoogte van de ínhoud als
+     ondergrens voor `position: fixed`. De balk landt dan op de onderkant van de
+     pagina in plaats van op de onderkant van het scherm, en hangt er dus boven.
+     Precies daarom viel het op bij Tijdlijn, Dagboek en Advies — de korte
+     schermen — en niet bij Kelder en Inzichten.
+     100dvh en niet 100vh: dvh volgt de zichtbare hoogte op een telefoon. */
+  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
@@ -876,7 +886,7 @@ legend {
   border-bottom: 1px solid var(--rule);
   margin-bottom: 26px;
 }
-.nav a {
+.nav a, .nav-meer {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: .02em;
@@ -887,8 +897,22 @@ legend {
   margin-bottom: -1px;
   transition: color .16s, border-color .16s;
 }
-.nav a:hover { color: var(--ink); }
+.nav a:hover, .nav-meer:hover { color: var(--ink); }
 .nav a[aria-current='page'] { color: var(--oxblood); border-bottom-color: var(--oxblood); }
+
+/* De "Meer"-knop deelt de maatvoering met de links ernaast (zie hierboven);
+   dit haalt er alleen het knopuiterlijk af. */
+.nav-meer {
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-family: var(--sans);
+  /* Een knop erft de regelhoogte niet van de body zoals een link dat wel doet;
+     zonder dit staat "Meer" een paar pixels hoger dan de rest van de rij. */
+  line-height: inherit;
+  cursor: pointer;
+}
+.nav-meer[aria-current='page'] { color: var(--oxblood); border-bottom-color: var(--oxblood); }
 
 /* ── ONDERBALK, PLUSKNOP EN PANEEL ─────────────────────────────────────────── */
 /* Op brede schermen doet de tekstrij het werk; op smalle schermen hoort
