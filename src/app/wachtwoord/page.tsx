@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { gebruikerId } from '@/lib/auth';
 import { PasswordForm } from './PasswordForm';
 
 export const dynamic = 'force-dynamic';
@@ -7,8 +8,10 @@ export const metadata = { title: 'Nieuw wachtwoord · Wijnkelder' };
 
 export default async function WachtwoordPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/inloggen');
+  // De middleware heeft de sessie hier al gecontroleerd; dit leest het token
+  // alleen nog lokaal uit.
+  const uid = await gebruikerId(supabase);
+  if (!uid) redirect('/inloggen');
 
   return (
     <main className="shell" style={{ maxWidth: 460 }}>

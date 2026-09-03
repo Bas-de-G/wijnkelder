@@ -81,7 +81,12 @@ export function TabBar() {
 
       <nav className="tabbar" aria-label="Hoofdnavigatie">
         {HOOFD.map(({ href, label, Icon }) => (
-          <Link key={href} href={href} aria-current={path === href ? 'page' : undefined}>
+          /* prefetch: standaard haalt Next voor een dynamische route alleen de
+             plaatshouder op, en pas bij de tik de gegevens. Met prefetch staat
+             het hele scherm er al voordat je tikt. Op een telefoon is er geen
+             muisaanwijzer om dat aan op te hangen, dus doen we het meteen. */
+          <Link key={href} href={href} prefetch
+            aria-current={path === href ? 'page' : undefined}>
             <Icon />
             <span>{label}</span>
           </Link>

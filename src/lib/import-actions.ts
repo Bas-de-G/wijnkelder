@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from './supabase/server';
+import { gebruikerId } from './auth';
 import { readBackup, planImport, changedFields, forInsert, type BackupSoort } from './import';
 
 export interface ImportPreview {
@@ -22,10 +23,10 @@ export interface ImportPreview {
 
 async function cellarId() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/inloggen');
+  const uid = await gebruikerId(supabase);
+  if (!uid) redirect('/inloggen');
   const { data } = await supabase
-    .from('cellars').select('id').eq('owner_id', user.id)
+    .from('cellars').select('id').eq('owner_id', uid)
     .order('created_at').limit(1).maybeSingle();
   if (!data) throw new Error('Geen kelder gevonden voor dit account.');
   return { supabase, id: data.id as string };
@@ -169,6 +170,6 @@ export async function runImport(_prev: ImportResult, form: FormData): Promise<Im
     }
   }
 
-  revalidatePath('/');
+  for (const pad of ['/', '/tijdlijn', '/inzichten', '/advies']) revalidatePath(pad);
   return { klaar: true, toegevoegd: plan.nieuw.length, bijgewerkt: plan.bijgewerkt.length };
 }

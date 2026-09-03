@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { gebruikerId } from '@/lib/auth';
 import { Nav } from '../Nav';
 import { WishPanel } from './WishPanel';
 import type { WishlistItem } from '@/lib/types';
@@ -9,11 +10,11 @@ export const metadata = { title: 'Verlanglijst · Wijnkelder' };
 
 export default async function VerlanglijstPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/inloggen');
+  const uid = await gebruikerId(supabase);
+  if (!uid) redirect('/inloggen');
 
   const { data: cellar } = await supabase
-    .from('cellars').select('id').eq('owner_id', user.id)
+    .from('cellars').select('id').eq('owner_id', uid)
     .order('created_at').limit(1).maybeSingle();
 
   const { data } = cellar
