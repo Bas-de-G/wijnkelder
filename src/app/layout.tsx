@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { serif, sans, mono } from './fonts';
 import './globals.css';
+import { Chrome } from './Chrome';
 
 export const metadata: Metadata = {
   title: 'Wijnkelder',
@@ -36,7 +37,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <Chrome>{children}</Chrome>
+      </body>
     </html>
   );
 }

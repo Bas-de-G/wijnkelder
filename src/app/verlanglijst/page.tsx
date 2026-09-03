@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { Nav, TabBar } from '../Nav';
-import { PageHeader } from '../Masthead';
+import { Nav } from '../Nav';
 import { WishPanel } from './WishPanel';
 import type { WishlistItem } from '@/lib/types';
 
@@ -24,14 +23,10 @@ export default async function VerlanglijstPage() {
     : { data: [] };
 
   return (
-    <>
-      <PageHeader titel="Nog te" cursief="proeven" />
-      <main className="shell" style={{ maxWidth: 720 }}>
+    <main className="shell" style={{ maxWidth: 720 }}>
       <Nav />
       <p className="inleiding">Wijnen die je nog wilt kopen. Koop je er een, dan verhuist hij met één druk naar je kelder.</p>
       <WishPanel items={(data ?? []) as WishlistItem[]} />
     </main>
-      <TabBar />
-    </>
   );
 }

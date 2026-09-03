@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getCellarWithWines } from '@/lib/cellar';
-import { Nav, TabBar } from '../Nav';
-import { PageHeader } from '../Masthead';
+import { Nav } from '../Nav';
 import { Tijdlijn } from './Tijdlijn';
 
 export const dynamic = 'force-dynamic';
@@ -11,9 +10,7 @@ export default async function TijdlijnPagina() {
   if (!data) redirect('/inloggen');
 
   return (
-    <>
-      <PageHeader titel="Tijdlijn" />
-      <main className="shell" style={{ maxWidth: 900 }}>
+    <main className="shell" style={{ maxWidth: 900 }}>
         <Nav />
         <p className="inleiding">
           Elk drinkvenster op dezelfde schaal, gegroepeerd op wat er als eerste om aandacht vraagt.
@@ -21,8 +18,6 @@ export default async function TijdlijnPagina() {
           loopt kun je nu opentrekken.
         </p>
         <Tijdlijn wines={data.wines} />
-      </main>
-      <TabBar />
-    </>
+    </main>
   );
 }

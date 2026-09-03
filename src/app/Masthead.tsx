@@ -55,22 +55,33 @@ function Datum() {
 }
 
 /**
- * De kop van de kelderpagina. Even hoog als die van elk ander scherm: de vier
- * cijfers stonden hier eerst bij in, en dan sprong de hele pagina 67 pixels
- * omhoog zodra je naar een ander tabblad ging. Ze staan nu als <Cijfers /> in
- * de pagina zelf, waar ze ook thuishoren — het is een samenvatting van het
- * register, geen navigatie.
+ * De donkere balk bovenaan. Eén component voor élk scherm, met of zonder titel.
+ *
+ * Bewust niet twee componenten: React vervangt een DOM-knoop zodra het
+ * componenttype op die plek verandert, en dan verdwijnt de balk een frame lang
+ * bij het wisselen van Kelder naar een ander tabblad. Zo blijft het dezelfde
+ * <header> en verandert alleen wat erin staat.
+ *
+ * Zonder titel staat het wordmerk er — op de kelderpagina en op de pagina van
+ * één wijn, waar de naam te lang is voor een balk van vaste hoogte.
  */
-export function AppHeader() {
+export function Kop({ titel, cursief }: { titel?: string; cursief?: string }) {
   return (
     <header className="kop kop-slank">
       <div className="kop-binnen">
         <div className="kop-rij">
-          <Link href="/" className="kop-merk">
-            Wijn<em>kelder</em>
-          </Link>
+          {titel ? (
+            <h1 className="kop-merk">
+              {titel}
+              {cursief && <em> {cursief}</em>}
+            </h1>
+          ) : (
+            <Link href="/" className="kop-merk">
+              Wijn<em>kelder</em>
+            </Link>
+          )}
           <div className="kop-acties">
-            <Datum />
+            {!titel && <Datum />}
             <ThemeToggle />
           </div>
         </div>
@@ -103,27 +114,3 @@ export function Cijfers({ tally }: { tally: Tally }) {
   );
 }
 
-/**
- * Slankere variant voor de andere schermen. Bewust zonder ondertitel: die was
- * op de ene pagina twee regels lang en op de andere afwezig, waardoor de balk
- * per pagina een andere hoogte kreeg en de hele pagina versprong bij het
- * wisselen van tabblad. De uitleg staat nu als inleiding in de pagina zelf,
- * waar hij mag uitlopen zonder de balk te verschuiven.
- */
-export function PageHeader({ titel, cursief }: { titel: string; cursief?: string }) {
-  return (
-    <header className="kop kop-slank">
-      <div className="kop-binnen">
-        <div className="kop-rij">
-          <h1 className="kop-merk">
-            {titel}
-            {cursief && <em> {cursief}</em>}
-          </h1>
-          <div className="kop-acties">
-            <ThemeToggle />
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
