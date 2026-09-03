@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Cijfers, Kop } from '../Masthead';
+import { TITELS } from '@/lib/schil';
 import { Ledger } from '../Ledger';
 import { TabBar } from '../Nav';
 import { Bars } from '../inzichten/Charts';
@@ -105,11 +106,10 @@ export default function OntwerpPage() {
         <p className="label">Kopbalken — moeten allemaal even hoog zijn</p>
       </div>
       <div className="koppenproef">
-        <Kop titel="Dagboek" />
-        <Kop titel="Inzichten" />
-        <Kop titel="Wat drink ik" cursief="vanavond" />
-        <Kop titel="Nog te" cursief="proeven" />
-        <Kop titel="Amarone della Valpolicella Classico Superiore" />
+        <Kop />
+        {Object.values(TITELS).map((t) => (
+          <Kop key={t.titel + (t.cursief ?? '')} titel={t.titel} cursief={t.cursief} />
+        ))}
       </div>
       <TabBar />
     </>

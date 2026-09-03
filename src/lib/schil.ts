@@ -11,12 +11,16 @@ export const TITELS: Record<string, KopTitel> = {
   '/tijdlijn': { titel: 'Tijdlijn' },
   '/dagboek': { titel: 'Dagboek' },
   '/inzichten': { titel: 'Inzichten' },
-  '/advies': { titel: 'Wat drink ik', cursief: 'vanavond' },
+  // Kort genoeg om op één regel te passen op een telefoon van 320px. Liep een
+  // titel over, dan werd hij afgekapt of ging de balk omlopen — en dan is de
+  // hoogte weer niet overal gelijk. De langere zin staat als inleiding op het
+  // scherm zelf.
+  '/advies': { titel: 'Wat', cursief: 'vanavond' },
   '/verlanglijst': { titel: 'Nog te', cursief: 'proeven' },
   '/toevoegen': { titel: 'Nieuwe', cursief: 'fles' },
   '/aanvullen': { titel: 'Laten', cursief: 'aanvullen' },
-  '/exporteren': { titel: 'Exporteren &', cursief: 'delen' },
-  '/importeren': { titel: 'Kelder', cursief: 'overnemen' },
+  '/exporteren': { titel: 'Delen &', cursief: 'export' },
+  '/importeren': { titel: 'Kelder', cursief: 'inlezen' },
 };
 
 /** Schermen zonder app-schil: die brengen hun eigen kop mee of horen er niet bij. */

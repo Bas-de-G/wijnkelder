@@ -56,7 +56,7 @@ describe('de titel in de balk', () => {
 
   it('een titel op de andere schermen', () => {
     expect(kopTitel('/dagboek')).toEqual({ titel: 'Dagboek' });
-    expect(kopTitel('/advies')).toEqual({ titel: 'Wat drink ik', cursief: 'vanavond' });
+    expect(kopTitel('/advies')).toEqual({ titel: 'Wat', cursief: 'vanavond' });
   });
 });
 
@@ -88,5 +88,45 @@ describe('elk tabblad met een titel bestaat ook echt', () => {
 
   it.each(Object.keys(TITELS))('%s heeft een page.tsx', (route) => {
     expect(routes.has(route)).toBe(true);
+  });
+});
+
+describe('de titels passen op één regel', () => {
+  // Op een iPhone van 320px is er ongeveer 200px voor de titel, naast de
+  // themaknop. In het lettertype van de kop is dat rond de zeventien tekens.
+  // Loopt een titel daaroverheen, dan wordt hij afgekapt of gaat de balk
+  // omlopen — en dan is de hoogte niet meer overal gelijk.
+  const MAX = 17;
+
+  it.each(Object.entries(TITELS))('%s past', (_pad, t) => {
+    const volledig = t.cursief ? `${t.titel} ${t.cursief}` : t.titel;
+    expect(volledig.length, volledig).toBeLessThanOrEqual(MAX);
+  });
+});
+
+describe('de menubalk blijft staan bij het scrollen', () => {
+  // Safari op iOS tekent een vastgezet element pas opnieuw als het scrollen
+  // klaar is. Bij het wisselen van tabblad springt de scrolpositie naar nul en
+  // loopt de balk zichtbaar mee. Een eigen laag houdt hem stil.
+  const css = fs.readFileSync(path.resolve(__dirname, '..', 'src', 'app', 'globals.css'), 'utf8');
+
+  // De hoofdregel staat aan het begin van een regel; binnen een @media staat
+  // hij ingesprongen, en dat is een andere regel.
+  const blok = (selector: string) => {
+    const i = css.indexOf('\n' + selector + ' {');
+    expect(i, selector).toBeGreaterThan(-1);
+    return css.slice(i, css.indexOf('\n}', i));
+  };
+
+  it('de tabbalk staat in een eigen laag', () => {
+    expect(blok('.tabbar')).toContain('translateZ(0)');
+  });
+
+  it('de plusknop ook', () => {
+    expect(blok('.fab')).toContain('translateZ(0)');
+  });
+
+  it('de pagina veert niet door aan de randen', () => {
+    expect(css).toMatch(/body \{ overscroll-behavior-y: none; \}/);
   });
 });
