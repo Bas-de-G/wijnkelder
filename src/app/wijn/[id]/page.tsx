@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { gebruikerId } from '@/lib/auth';
 import { currentYear } from '@/lib/drinkwindow';
 import { parseNote, genericPairing } from '@/lib/sommelier';
 import type { Wine } from '@/lib/types';
@@ -21,8 +22,8 @@ export default async function WijnPage({
   const { drinken } = await searchParams;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/inloggen');
+  const uid = await gebruikerId(supabase);
+  if (!uid) redirect('/inloggen');
 
   const { data } = await supabase.from('wines').select('*').eq('id', id).maybeSingle();
   if (!data || data.deleted_at) notFound();

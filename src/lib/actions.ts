@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from './supabase/server';
+import { gebruikerId } from './auth';
 import { WINE_TYPES, type WineType } from './types';
 
 function str(v: FormDataEntryValue | null): string | null {
@@ -29,15 +30,24 @@ function wineType(v: FormDataEntryValue | null): WineType {
   return (WINE_TYPES as string[]).includes(s ?? '') ? (s as WineType) : 'Rood';
 }
 
+/**
+ * De wijnlijst staat op vier schermen. Die moeten allemaal verversen zodra er
+ * een wijn bij komt of af gaat — met de clientcache van de router eronder valt
+ * het anders op dat er ergens nog een oude lijst staat.
+ */
+function verversWijnschermen() {
+  for (const pad of ['/', '/tijdlijn', '/inzichten', '/advies']) revalidatePath(pad);
+}
+
 async function requireCellar() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/inloggen');
+  const uid = await gebruikerId(supabase);
+  if (!uid) redirect('/inloggen');
 
   const { data: cellar } = await supabase
     .from('cellars')
     .select('id')
-    .eq('owner_id', user.id)
+    .eq('owner_id', uid)
     .order('created_at')
     .limit(1)
     .maybeSingle();
@@ -121,7 +131,7 @@ export async function saveWine(_prev: FormResult, form: FormData): Promise<FormR
     if (error) return { error: `Opslaan mislukte: ${error.message}` };
   }
 
-  revalidatePath('/');
+  verversWijnschermen();
   redirect('/');
 }
 
@@ -129,7 +139,7 @@ export async function saveWine(_prev: FormResult, form: FormData): Promise<FormR
 export async function deleteWine(id: string) {
   const { supabase } = await requireCellar();
   await supabase.from('wines').update({ deleted_at: new Date().toISOString() }).eq('id', id);
-  revalidatePath('/');
+  verversWijnschermen();
   redirect('/');
 }
 
@@ -171,7 +181,7 @@ export async function drinkBottle(_prev: FormResult, form: FormData): Promise<Fo
     await supabase.from('wines').update({ aantal: over }).eq('id', id);
   }
 
-  revalidatePath('/');
+  verversWijnschermen();
   revalidatePath('/dagboek');
   redirect('/');
 }
@@ -251,7 +261,7 @@ export async function buyWish(id: string) {
   if (error) redirect('/verlanglijst');
 
   await supabase.from('wishlist').delete().eq('id', id);
-  revalidatePath('/');
+  verversWijnschermen();
   revalidatePath('/verlanglijst');
   redirect('/');
 }
