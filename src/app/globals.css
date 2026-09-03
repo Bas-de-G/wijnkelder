@@ -170,6 +170,10 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   }
 }
 
+/* Het doorveren aan boven- en onderkant hoort bij een webpagina, niet bij een
+   app op je beginscherm — en het sleept een vastgezette balk zichtbaar mee. */
+body { overscroll-behavior-y: none; }
+
 /* ── TYPOGRAFIE ────────────────────────────────────────────────────────────── */
 .display {
   font-family: var(--serif);
@@ -238,10 +242,11 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   .kop .kop-binnen { padding: 16px 16px 14px; }
   .kop-slank .kop-binnen { padding-bottom: 14px; }
 }
+/* Eén regel, zodat de balk overal even hoog is. Geen overflow: hidden meer —
+   de titels zijn nu kort genoeg om te passen, en dat knipte de onderkant van de
+   letters eraf. */
 .kop-slank .kop-merk {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -256,7 +261,10 @@ a { color: var(--oxblood); text-underline-offset: 3px; text-decoration-thickness
   font-size: clamp(26px, 6vw, 36px);
   font-weight: 500;
   letter-spacing: -.03em;
-  line-height: 1.05;
+  /* Ruim genoeg voor de staart van de j en de krullen van de cursieve letters.
+     Op 1.05 vielen die buiten de regel, en met overflow: hidden eronder werden
+     ze eraf geknipt. */
+  line-height: 1.25;
   color: var(--kop-ink);
   text-decoration: none;
   text-wrap: balance;
@@ -908,6 +916,12 @@ legend {
   padding-bottom: env(safe-area-inset-bottom);
   /* Zodat de lijst er niet hard tegenaan botst bij het scrollen. */
   box-shadow: 0 -8px 20px -18px rgba(25, 20, 22, .5);
+  /* Een eigen laag voor de balk. Safari op iOS tekent een vastgezet element
+     normaal pas opnieuw als het scrollen klaar is; bij het wisselen van tabblad
+     springt de scrolpositie naar nul en zie je de balk een frame lang meelopen.
+     In een eigen laag blijft hij staan waar hij staat. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 .tabbar a, .tabbar button {
   display: flex;
@@ -961,8 +975,11 @@ legend {
   border: none;
   box-shadow: 0 4px 16px -4px rgba(82, 9, 31, .5);
   transition: transform .14s;
+  /* Zelfde reden als bij de balk hierboven. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
-.fab:active { transform: scale(.94); }
+.fab:active { transform: translateZ(0) scale(.94); }
 .fab svg { width: 26px; height: 26px; stroke-width: 2; }
 :root[data-theme='dark'] .fab,
 :root:not([data-theme='light']) .fab { color: #24070F; }
