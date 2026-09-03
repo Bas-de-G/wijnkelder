@@ -3,8 +3,7 @@ import { headers } from 'next/headers';
 import QRCode from 'qrcode';
 import { createClient } from '@/lib/supabase/server';
 import { getCellarWithWines } from '@/lib/cellar';
-import { Nav, TabBar } from '../Nav';
-import { PageHeader } from '../Masthead';
+import { Nav } from '../Nav';
 import { Downloads } from './Downloads';
 import { ShareList } from './ShareList';
 
@@ -59,15 +58,11 @@ export default async function ExportPage() {
   );
 
   return (
-    <>
-      <PageHeader titel="Exporteren &" cursief="delen" />
-      <main className="shell" style={{ maxWidth: 760 }}>
+    <main className="shell" style={{ maxWidth: 760 }}>
       <Nav />
 
       <Downloads leeg={data.wines.length === 0} />
       <ShareList links={links} heeftWijnen={data.wines.length > 0} />
     </main>
-      <TabBar />
-    </>
   );
 }

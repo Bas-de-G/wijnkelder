@@ -3,8 +3,7 @@ import Link from 'next/link';
 import { getCellarWithWines } from '@/lib/cellar';
 import { totals, countBy, countByStatus } from '@/lib/insights';
 import { currentYear } from '@/lib/drinkwindow';
-import { Nav, TabBar } from '../Nav';
-import { PageHeader } from '../Masthead';
+import { Nav } from '../Nav';
 import { Bars } from './Charts';
 
 export const dynamic = 'force-dynamic';
@@ -23,25 +22,19 @@ export default async function InzichtenPage() {
 
   if (!wines.length) {
     return (
-    <>
-      <PageHeader titel="Inzichten" />
       <main className="shell" style={{ maxWidth: 820 }}>
-      <Nav />
+        <Nav />
         <div className="state-empty">
           <p className="display">Nog niets te tellen</p>
           <p style={{ marginBottom: 20 }}>Voeg wijnen toe, dan verschijnen hier de verhoudingen.</p>
           <Link className="btn btn-primary" href="/toevoegen">Wijn toevoegen</Link>
         </div>
       </main>
-        <TabBar />
-      </>
     );
   }
 
   return (
-      <>
-        <PageHeader titel="Inzichten" />
-        <main className="shell" style={{ maxWidth: 820 }}>
+    <main className="shell" style={{ maxWidth: 820 }}>
       <Nav />
 
       <div className="stats">
@@ -90,7 +83,5 @@ export default async function InzichtenPage() {
         leeg="Nog geen druiven ingevuld. Claude kan die aanvullen — zie de instructie in de handleiding."
       />
     </main>
-      <TabBar />
-    </>
   );
 }

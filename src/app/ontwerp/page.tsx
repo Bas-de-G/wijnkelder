@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { AppHeader, Cijfers, PageHeader } from '../Masthead';
+import { Cijfers, Kop } from '../Masthead';
 import { Ledger } from '../Ledger';
 import { TabBar } from '../Nav';
 import { Bars } from '../inzichten/Charts';
@@ -46,7 +46,7 @@ export default function OntwerpPage() {
 
   return (
     <>
-      <AppHeader />
+      <Kop />
       <main className="shell">
       <Cijfers tally={kopCijfers(DEMO)} />
       <Ledger wines={DEMO} />
@@ -105,11 +105,11 @@ export default function OntwerpPage() {
         <p className="label">Kopbalken — moeten allemaal even hoog zijn</p>
       </div>
       <div className="koppenproef">
-        <PageHeader titel="Dagboek" />
-        <PageHeader titel="Inzichten" />
-        <PageHeader titel="Wat drink ik" cursief="vanavond" />
-        <PageHeader titel="Nog te" cursief="proeven" />
-        <PageHeader titel="Amarone della Valpolicella Classico Superiore" />
+        <Kop titel="Dagboek" />
+        <Kop titel="Inzichten" />
+        <Kop titel="Wat drink ik" cursief="vanavond" />
+        <Kop titel="Nog te" cursief="proeven" />
+        <Kop titel="Amarone della Valpolicella Classico Superiore" />
       </div>
       <TabBar />
     </>

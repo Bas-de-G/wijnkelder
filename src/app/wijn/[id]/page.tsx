@@ -3,8 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { currentYear } from '@/lib/drinkwindow';
 import { parseNote, genericPairing } from '@/lib/sommelier';
 import type { Wine } from '@/lib/types';
-import { Nav, TabBar } from '../../Nav';
-import { PageHeader } from '../../Masthead';
+import { Nav } from '../../Nav';
 import { WineForm } from '../../WineForm';
 import { WineActions } from './WineActions';
 import { WijnKern } from '../../WineFacts';
@@ -33,10 +32,16 @@ export default async function WijnPage({
   const sections = parseNote(wine.note);
 
   return (
-    <>
-      <PageHeader titel={wine.naam} />
-      <main className="shell" style={{ maxWidth: 720 }}>
+    <main className="shell" style={{ maxWidth: 720 }}>
       <Nav />
+
+      {/* De naam stond in de donkere balk. Die balk is nu voor alle schermen
+          hetzelfde, en een wijnnaam past er niet in zonder hem af te kappen —
+          dus staat hij hier, waar hij mag omlopen. */}
+      <h1 className="wijn-titel">
+        {wine.naam}
+        {wine.jaar && <span className="row-vintage">{wine.jaar}</span>}
+      </h1>
 
       <WijnKern wine={wine} year={year} />
 
@@ -75,7 +80,5 @@ export default async function WijnPage({
         </div>
       </details>
     </main>
-      <TabBar />
-    </>
   );
 }

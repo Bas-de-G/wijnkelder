@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCellarWithWines } from '@/lib/cellar';
 import { heeftAanvullingNodig } from '@/lib/enrich-prompt';
-import { Nav, TabBar } from '../Nav';
-import { PageHeader } from '../Masthead';
+import { Nav } from '../Nav';
 import { AanvulFlow } from './AanvulFlow';
 
 export const dynamic = 'force-dynamic';
@@ -15,14 +14,10 @@ export default async function AanvullenPage() {
   const onvolledig = data.wines.filter(heeftAanvullingNodig);
 
   return (
-    <>
-      <PageHeader titel="Laten" cursief="aanvullen" />
-      <main className="shell" style={{ maxWidth: 720 }}>
+    <main className="shell" style={{ maxWidth: 720 }}>
       <Nav />
       <p className="inleiding">Claude zoekt per wijn de druif op, bepaalt een realistisch drinkvenster en schrijft een notitie met wijnhuis, smaakprofiel en eettips.</p>
       <AanvulFlow totaal={data.wines.length} onvolledig={onvolledig.length} />
     </main>
-      <TabBar />
-    </>
   );
 }

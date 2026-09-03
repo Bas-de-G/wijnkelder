@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCellarWithWines } from '@/lib/cellar';
 import { kopCijfers } from '@/lib/insights';
-import { AppHeader, Cijfers } from './Masthead';
-import { Nav, TabBar } from './Nav';
+import { Cijfers } from './Masthead';
+import { Nav } from './Nav';
 import { Ledger } from './Ledger';
 
 export const dynamic = 'force-dynamic';
@@ -16,9 +16,7 @@ export default async function KelderPage() {
   const tally = kopCijfers(wines);
 
   return (
-    <>
-      <AppHeader />
-      <main className="shell">
+    <main className="shell">
         <Nav />
         <Cijfers tally={tally} />
         <Ledger wines={wines} />
@@ -28,8 +26,6 @@ export default async function KelderPage() {
             <Link className="btn btn-quiet" href="/advies">Wat drink ik vanavond?</Link>
           </div>
         )}
-      </main>
-      <TabBar />
-    </>
+    </main>
   );
 }
