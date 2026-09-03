@@ -115,6 +115,17 @@ export function kopCijfers(wines: Wine[], year: number = currentYear()): KopCijf
   };
 }
 
+/**
+ * Wat er na het opentrekken van één fles overblijft.
+ *
+ * Number() omdat een aantal uit een import als tekst kan binnenkomen, en dan
+ * levert "3" - 1 weliswaar 2 op maar "" - 1 een NaN. Nooit onder nul.
+ */
+export function flessenNa(aantal: unknown): number {
+  const n = Number(aantal);
+  return Math.max(0, (Number.isFinite(n) ? n : 1) - 1);
+}
+
 /** Wijnen die aandacht vragen: bijna op dronk, bijna voorbij, of al voorbij. */
 export function needsAttention(wines: Wine[], year: number = currentYear()) {
   const voorbij: Wine[] = [], bijnaVoorbij: Wine[] = [], bijnaOpDronk: Wine[] = [];

@@ -129,4 +129,11 @@ describe('de menubalk blijft staan bij het scrollen', () => {
   it('de pagina veert niet door aan de randen', () => {
     expect(css).toMatch(/body \{ overscroll-behavior-y: none; \}/);
   });
+
+  it('de pagina is minstens zo hoog als het scherm', () => {
+    // Hier zat de sprong: bij inhoud die korter is dan het scherm neemt Safari
+    // op iOS de hoogte van de inhoud als ondergrens voor position: fixed, en
+    // dan hangt de balk boven de onderrand.
+    expect(blok('body')).toMatch(/min-height: 100dvh/);
+  });
 });

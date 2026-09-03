@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { totals, countBy, countByStatus, needsAttention, kopCijfers } from '../src/lib/insights';
+import { totals, countBy, countByStatus, needsAttention, kopCijfers, flessenNa } from '../src/lib/insights';
 import { legacy } from './legacy-logic.mjs';
 import type { Wine, WineType } from '../src/lib/types';
 
@@ -166,5 +166,32 @@ describe('de vier cijfers in de kop', () => {
   it('telt een aantal dat als tekst binnenkomt gewoon mee', () => {
     const k = kopCijfers([w({ naam: 'tekst', aantal: '2' as unknown as number })], JAAR);
     expect(k.flessen).toBe(2);
+  });
+});
+
+describe('flessen aftrekken na een gedronken fles', () => {
+  // Deze telling stond los in drinkBottle en werd nergens gecontroleerd. Het
+  // bijwerken van de voorraad kon in stilte mislukken; nu wordt de fout
+  // teruggegeven en is de rekensom apart te testen.
+  it('trekt er één af', () => {
+    expect(flessenNa(3)).toBe(2);
+    expect(flessenNa(1)).toBe(0);
+  });
+
+  it('komt nooit onder nul', () => {
+    expect(flessenNa(0)).toBe(0);
+    expect(flessenNa(-4)).toBe(0);
+  });
+
+  it('rekent ook met een aantal dat als tekst binnenkomt', () => {
+    expect(flessenNa('3')).toBe(2);
+    expect(flessenNa('1')).toBe(0);
+  });
+
+  it('gaat bij onzin uit van één fles, dus nul over', () => {
+    expect(flessenNa(null)).toBe(0);
+    expect(flessenNa(undefined)).toBe(0);
+    expect(flessenNa('')).toBe(0);
+    expect(flessenNa('kurk')).toBe(0);
   });
 });

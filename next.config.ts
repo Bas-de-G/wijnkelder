@@ -5,16 +5,17 @@ const config: NextConfig = {
 
   experimental: {
     /**
-     * Hoe lang de router een al bezocht scherm clientside vasthoudt. Standaard
-     * is dat nul voor dynamische pagina's, en dus haalt elk tabblad zijn
-     * gegevens opnieuw op — ook als je net terugtikt naar waar je vandaan komt.
+     * Alleen voor statische routes. Voor dynamische stond hier dertig seconden,
+     * om het heen-en-weer tussen tabbladen direct te maken. Dat is teruggedraaid:
+     * na het vastleggen van een gedronken fles stuurt de actie je terug naar de
+     * kelder, en daar kwam je net vandaan — dus stond dat scherm in die cache en
+     * zag je nog de oude voorraad. Een verkeerd aantal flessen is erger dan een
+     * scherm dat een tel moet nadenken.
      *
-     * Dertig seconden is lang genoeg om het heen-en-weer tussen tabbladen
-     * direct te maken, en kort genoeg om niet in de weg te zitten. Schrijven
-     * gaat via server actions die revalidatePath aanroepen, en dat leegt deze
-     * cache meteen — een toegevoegde wijn staat er dus gewoon.
+     * De winst van #11 blijft overeind: twee netwerkritjes minder per scherm, en
+     * de tabbladen halen hun scherm nog steeds alvast op.
      */
-    staleTimes: { dynamic: 30, static: 180 },
+    staleTimes: { static: 180 },
   },
 };
 

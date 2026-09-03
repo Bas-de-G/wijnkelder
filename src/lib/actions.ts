@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from './supabase/server';
 import { gebruikerId } from './auth';
+import { flessenNa } from './insights';
 import { WINE_TYPES, type WineType } from './types';
 
 function str(v: FormDataEntryValue | null): string | null {
@@ -170,15 +171,22 @@ export async function drinkBottle(_prev: FormResult, form: FormData): Promise<Fo
   });
   if (logError) return { error: `Kon het dagboek niet bijwerken: ${logError.message}` };
 
-  const over = Math.max(0, (wine.aantal || 1) - 1);
+  const over = flessenNa(wine.aantal);
 
   // Was dit de laatste fles, dan mag de gebruiker kiezen: de wijn als
   // herinnering laten staan (nul flessen) of hem uit de kelder halen. Het
   // dagboek blijft in beide gevallen intact, want dat bewaart de naam apart.
-  if (over === 0 && str(form.get('verwijderen')) === 'ja') {
-    await supabase.from('wines').update({ deleted_at: new Date().toISOString() }).eq('id', id);
-  } else {
-    await supabase.from('wines').update({ aantal: over }).eq('id', id);
+  //
+  // De uitkomst wordt gecontroleerd. Zonder die controle mislukte het bijwerken
+  // in stilte en zag je een dagboekregel verschijnen terwijl de voorraad gelijk
+  // bleef — precies het soort fout waar je aan je eigen ogen gaat twijfelen.
+  const { error: voorraadError } =
+    over === 0 && str(form.get('verwijderen')) === 'ja'
+      ? await supabase.from('wines').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+      : await supabase.from('wines').update({ aantal: over }).eq('id', id);
+
+  if (voorraadError) {
+    return { error: `De fles staat in je dagboek, maar de voorraad kon niet worden bijgewerkt: ${voorraadError.message}` };
   }
 
   verversWijnschermen();

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Cijfers, Kop } from '../Masthead';
+import { Nav } from '../Nav';
 import { TITELS } from '@/lib/schil';
 import { Ledger } from '../Ledger';
 import { TabBar } from '../Nav';
@@ -49,6 +50,7 @@ export default function OntwerpPage() {
     <>
       <Kop />
       <main className="shell">
+      <Nav />
       <Cijfers tally={kopCijfers(DEMO)} />
       <Ledger wines={DEMO} />
 
