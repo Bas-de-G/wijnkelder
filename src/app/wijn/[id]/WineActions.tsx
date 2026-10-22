@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useRef, useState } from 'react';
 import { drinkBottle, deleteWine, type FormResult } from '@/lib/actions';
 import type { Wine } from '@/lib/types';
 
@@ -12,6 +12,14 @@ export function WineActions({ wine, meteenOpen = false }: { wine: Wine; meteenOp
   // daar één tik blijft en het formulier maar op één plek staat.
   const [open, setOpen] = useState(meteenOpen && wine.aantal > 0);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // De keuze bij de laatste fles. De naam en waarde van de knop waarmee je
+  // verstuurt, kwamen niet mee in het formulier dat bij de server aankwam — en
+  // dan werd "Uit de kelder halen" stilletjes "Bewaren". Daarom zet de knop zijn
+  // keuze eerst in een verborgen veld, dat altijd meegaat.
+  const keuze = useRef<HTMLInputElement>(null);
+  const kies = (waarde: 'ja' | 'nee') => () => {
+    if (keuze.current) keuze.current.value = waarde;
+  };
 
   const laatste = wine.aantal === 1;
 
@@ -23,6 +31,7 @@ export function WineActions({ wine, meteenOpen = false }: { wine: Wine; meteenOp
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
           <input type="hidden" name="id" value={wine.id} />
+          {laatste && <input type="hidden" name="verwijderen" defaultValue="nee" ref={keuze} />}
           <div className="grid-2">
             <div className="field">
               <label htmlFor="met_wie">Met wie?</label>
@@ -47,10 +56,11 @@ export function WineActions({ wine, meteenOpen = false }: { wine: Wine; meteenOp
               </p>
               <div className="knoprij">
                 <button className="btn btn-primary" type="submit" name="verwijderen" value="nee"
-                  disabled={pending}>
+                  onClick={kies('nee')} disabled={pending}>
                   {pending ? 'Bezig…' : 'Bewaren als herinnering'}
                 </button>
-                <button className="btn" type="submit" name="verwijderen" value="ja" disabled={pending}>
+                <button className="btn" type="submit" name="verwijderen" value="ja"
+                  onClick={kies('ja')} disabled={pending}>
                   Uit de kelder halen
                 </button>
                 <button className="btn btn-quiet" type="button" onClick={() => setOpen(false)}>
