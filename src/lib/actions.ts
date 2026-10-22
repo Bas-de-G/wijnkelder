@@ -144,6 +144,15 @@ export async function deleteWine(id: string) {
   redirect('/');
 }
 
+/**
+ * Koos je bij de laatste fles voor "Uit de kelder halen"? Het veld kan twee keer
+ * meekomen: uit het verborgen veld, en — als de browser dat doet — van de knop
+ * zelf. Eén "ja" is genoeg.
+ */
+function wilVerwijderen(form: FormData): boolean {
+  return form.getAll('verwijderen').some((v) => str(v) === 'ja');
+}
+
 /** Eén fles minder, met een regel in het dagboek. */
 export async function drinkBottle(_prev: FormResult, form: FormData): Promise<FormResult> {
   const { supabase, cellarId } = await requireCellar();
@@ -181,7 +190,7 @@ export async function drinkBottle(_prev: FormResult, form: FormData): Promise<Fo
   // in stilte en zag je een dagboekregel verschijnen terwijl de voorraad gelijk
   // bleef — precies het soort fout waar je aan je eigen ogen gaat twijfelen.
   const { error: voorraadError } =
-    over === 0 && str(form.get('verwijderen')) === 'ja'
+    over === 0 && wilVerwijderen(form)
       ? await supabase.from('wines').update({ deleted_at: new Date().toISOString() }).eq('id', id)
       : await supabase.from('wines').update({ aantal: over }).eq('id', id);
 
